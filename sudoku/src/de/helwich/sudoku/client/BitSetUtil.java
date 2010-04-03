@@ -120,6 +120,17 @@ public class BitSetUtil {
     		throw new IndexOutOfBoundsException("bitIndex [0..."+MAX_INDEX+"]: " + index);
 	}
 	
+    /**
+     * Returns the number of bits set to <tt>true</tt> in the bitset.
+     *
+     * @param   bitset
+     *          the bitset.
+     * @return  the number of bits set to <tt>true</tt> in the bitset.
+     */
+    public static int cardinality(int bitset) {
+        return Integer.bitCount(bitset);
+    }
+	
 	/**
 	 * For the given list of bitsets return all possible permutations of the bit
 	 * indices.

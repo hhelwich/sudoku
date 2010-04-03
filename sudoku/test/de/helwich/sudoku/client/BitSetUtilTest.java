@@ -83,4 +83,9 @@ public class BitSetUtilTest {
 		assertEquals(bitsets[0], newbs[2]);
 	}
 
+	@Test
+	public void testCardinality() {
+		assertEquals(4, cardinality(bitset));
+	}
+
 }
