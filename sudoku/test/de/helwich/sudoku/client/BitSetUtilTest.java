@@ -88,4 +88,15 @@ public class BitSetUtilTest {
 		assertEquals(4, cardinality(bitset));
 	}
 
+	@Test
+	public void testSubset() {
+		assertTrue(subset(bitset, bitset));
+		assertTrue(subset(0, bitset));
+		assertTrue(subset(0, 0));
+		assertFalse(subset(bitset, 0));
+		int sub = clear(bitset, 3);
+		assertTrue(subset(sub, bitset));
+		assertFalse(subset(bitset, sub));
+	}
+
 }

@@ -135,6 +135,18 @@ public class BitSetUtil {
 	}
 
 	/**
+	 * Returns <code>true</code> if the first parameter bitset is a subset of
+	 * the second parameter bitset.
+	 * 
+	 * @param  subbitset
+	 * @param  bitset
+	 * @return
+	 */
+	public static boolean subset(int subbitset, int bitset) {
+		return (bitset & subbitset) == subbitset;
+	}
+
+	/**
 	 * For the given list of bitsets return all possible permutations of the bit
 	 * indices.
 	 * 
