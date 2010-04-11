@@ -315,6 +315,20 @@ public class Type {
 	}
 
 	/**
+	 * Return a copy of this type. This can be useful if an static instance of
+	 * this class is needed.
+	 * 
+	 * @return
+	 */
+	public Type copy() {
+		Type type = new Type();
+		for (CellGroup group : groups)
+			type.addCellGroup(group);
+		type.setFieldChars(getFieldChars());
+		return type;
+	}
+
+	/**
 	 * Has to be called if {@link #groups} and {@link #cellGroups} have changed,
 	 * to be able to recalculate affected parameters
 	 */
