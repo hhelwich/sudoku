@@ -10,57 +10,58 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * An editable sudoku playfield type.
- * The type is defined by cells which are arranged inside a grid, by a set of
- * characters, so that each cell can hold one of this characters, and a list
- * of cell groups for which a subset of the given characters can be stored in.
+ * An editable sudoku playfield type. The type is defined by cells which are
+ * arranged inside a grid, by a set of characters, so that each cell can hold
+ * one of this characters, and a list of cell groups for which a subset of the
+ * given characters can be stored in.
  * 
  * The type is editable so it can be used in a sudoku type construction gui
- * later.
- * The dimension of the sudoku type is given by its height and width.
- * If a cell in this field exists can be checked by the operation
+ * later. The dimension of the sudoku type is given by its height and width. If
+ * a cell in this field exists can be checked by the operation
  * {@link #hasCellIndex(int, int)}.
  * 
  * @author Hendrik Helwich
  */
 public class Type {
 
-	/** all possible field chars. No duplicates allowed;
-	 * must be in ascending order; maximum length of 32 */
+	/**
+	 * all possible field chars. No duplicates allowed; must be in ascending
+	 * order; maximum length of 32
+	 */
 	private String fieldChars;
-	
+
 	/** This list can be read an changed via getter an setter operations */
 	private List<CellGroup> groups = new LinkedList<CellGroup>();
-	
-	/** An inverse index of the {@link #groups} parameter for better
-	 * performance. It can be used if all groups which are holding a given cell
-	 * index need to be find quickly (e.g. {@link #getCellGroups(int, int)}).
-	 * This parameter must be adapted if the parameter {@link #groups} is
-	 * changed. */
-	private Map<CellIndex, Set<CellGroup>> cellGroups =
-		new HashMap<CellIndex, Set<CellGroup>>();
+
+	/**
+	 * An inverse index of the {@link #groups} parameter for better performance.
+	 * It can be used if all groups which are holding a given cell index need to
+	 * be find quickly (e.g. {@link #getCellGroups(int, int)}). This parameter
+	 * must be adapted if the parameter {@link #groups} is changed.
+	 */
+	private Map<CellIndex, Set<CellGroup>> cellGroups = new HashMap<CellIndex, Set<CellGroup>>();
 
 	/** -1 if {@link #groups} and {@link #cellGroups} have changed */
 	private int height;
 	private int width;
 	private boolean topLeftAligned;
 	private int maxBitsetIndex;
-	
+
 	/**
 	 * Create an empty sudoku type.
 	 */
 	public Type() {
 		resetDimension();
 	}
-	
+
 	/**
 	 * Add an immutable group of cell indices.
 	 * 
 	 * @param  cellGroup
 	 * @throws IllegalArgumentException
 	 *         If the fieldChars are set by the operation
-	 *         {@link #setFieldChars(String)} before and the highest index of
-	 *         the group bitset is not lower than the length of this string. 
+	 *         {@link #setFieldChars(String)} before and the highest index
+	 *         of the group bitset is not lower than the length of this string.
 	 */
 	public void addCellGroup(CellGroup cellGroup)
 			throws IllegalArgumentException {
@@ -69,7 +70,7 @@ public class Type {
 		groups.add(cellGroup);
 		resetDimension();
 	}
-	
+
 	/**
 	 * Replace the group of cell indices with the given index and the given new
 	 * cell index group.
@@ -78,8 +79,8 @@ public class Type {
 	 * @param  group
 	 * @throws IllegalArgumentException
 	 *         If the fieldChars are set by the operation
-	 *         {@link #setFieldChars(String)} before and the highest index of
-	 *         the group bitset is not lower than the length of this string. 
+	 *         {@link #setFieldChars(String)} before and the highest index
+	 *         of the group bitset is not lower than the length of this string.
 	 */
 	public void setCellGroup(int index, CellGroup group)
 			throws IllegalArgumentException {
@@ -100,42 +101,41 @@ public class Type {
 		groups.remove(index);
 		resetDimension();
 	}
-	
+
 	/**
 	 * Returns the group of cell indices with the given index.
 	 * 
 	 * @param  index
 	 * @return
-     * @throws IndexOutOfBoundsException
-     *         if the index is out of range
-     *         (<tt>index &lt; 0 || index &gt;= getCellGroupCount()</tt>)
+	 * @throws IndexOutOfBoundsException
+	 *         if the index is out of range
+	 *         (<tt>index &lt; 0 || index &gt;= getCellGroupCount()</tt>)
 	 */
 	public CellGroup getCellGroup(int index) throws IndexOutOfBoundsException {
 		return groups.get(index);
 	}
-	
+
 	/**
-     * Returns the number of groups of cell indices.
-     *
+	 * Returns the number of groups of cell indices.
+	 * 
 	 * @return
 	 */
 	public int getCellGroupCount() {
 		return groups.size();
 	}
-	
+
 	/**
 	 * @param  bitset
 	 * @throws IllegalArgumentException
-	 *         If the highest bitset index is not lower then the length of the
-	 *         {@link #fieldChars} parameter.
+	 *         If the highest bitset index is not lower then the length of
+	 *         the {@link #fieldChars} parameter.
 	 */
 	private void checkGroupCharacterBitset(int bitset)
 			throws IllegalArgumentException {
-		if (fieldChars != null &&
-				nextSetBit(bitset, 0) >= fieldChars.length())
+		if (fieldChars != null && nextSetBit(bitset, 0) >= fieldChars.length())
 			throw new IllegalArgumentException("");
 	}
-	
+
 	/**
 	 * Adapt parameter {@link #cellGroups} if the specified element is added to
 	 * parameter {@link #groups}.
@@ -153,7 +153,7 @@ public class Type {
 			cgps.add(group);
 		}
 	}
-	
+
 	/**
 	 * Adapt parameter {@link #cellGroups} if the element with the given index
 	 * is removed from the list parameter {@link #groups}.
@@ -172,7 +172,7 @@ public class Type {
 				cellGroups.remove(idx);
 		}
 	}
-	
+
 	/**
 	 * Returns <code>true</code> if the cell with the given row and column
 	 * exists in this type.
@@ -185,7 +185,7 @@ public class Type {
 		CellIndex index = new CellIndex(row, column);
 		return cellGroups.keySet().contains(index);
 	}
-	
+
 	/**
 	 * Returns the set of all cell index groups which contain the given cell
 	 * index.
@@ -209,7 +209,7 @@ public class Type {
 	}
 
 	/**
-	 * Sets the set of character which can be stored in a cell of this type. 
+	 * Sets the set of character which can be stored in a cell of this type.
 	 * 
 	 * @param  fieldChars
 	 * @throws IllegalArgumentException
@@ -219,10 +219,12 @@ public class Type {
 	 */
 	public void setFieldChars(String fieldChars)
 			throws IllegalArgumentException {
-		if (! isStrictMonotonic(fieldChars))
-			throw new IllegalArgumentException("chars must be in ascending order");
+		if (!isStrictMonotonic(fieldChars))
+			throw new IllegalArgumentException(
+					"chars must be in ascending order");
 		if (getMaxBitsetIndex() >= fieldChars.length())
-			throw new IllegalArgumentException("need at least "+(getMaxBitsetIndex()+1)+" characters");
+			throw new IllegalArgumentException("need at least "
+					+ (getMaxBitsetIndex() + 1) + " characters");
 		this.fieldChars = fieldChars;
 	}
 
@@ -235,7 +237,7 @@ public class Type {
 	 */
 	static boolean isStrictMonotonic(String s) {
 		char c = Character.MIN_VALUE, c2;
-		for (int i = 0; i < s.length(); i ++) {
+		for (int i = 0; i < s.length(); i++) {
 			c2 = s.charAt(i);
 			if (c >= c2)
 				return false;
@@ -266,9 +268,9 @@ public class Type {
 
 	/**
 	 * Returns the maximum character set index which is stored in a group of
-	 * this type. It is assured that this value is lower then the length of
-	 * the {@link #fieldChars} parameter (if this parameter is not
-	 * <code>null</code>) but it should be equal to the length minus one.
+	 * this type. It is assured that this value is lower then the length of the
+	 * {@link #fieldChars} parameter (if this parameter is not <code>null</code>
+	 * ) but it should be equal to the length minus one.
 	 * 
 	 * @return
 	 */
@@ -276,7 +278,7 @@ public class Type {
 		calculateDimensions();
 		return maxBitsetIndex;
 	}
-	
+
 	/**
 	 * Returns <code>true</code> if the first row and the first column of this
 	 * type contain at least one cell.
@@ -287,7 +289,7 @@ public class Type {
 		calculateDimensions();
 		return topLeftAligned;
 	}
-	
+
 	/**
 	 * Returns <code>true</code> if the type is empty.
 	 * 
@@ -296,31 +298,30 @@ public class Type {
 	public boolean isEmpty() {
 		return cellGroups.keySet().isEmpty();
 	}
-	
+
 	/**
-	 * Create a normalized form of this type.
-	 * Remove needless information which is hold by this type.
-	 * Empty rows on the top and at the left will be removed, so that operation
-	 * {@link #isTopLeftAligned()} will return <code>true</code>.
-	 * All characters of the String which is returned by
+	 * Create a normalized form of this type. Remove needless information which
+	 * is hold by this type. Empty rows on the top and at the left will be
+	 * removed, so that operation {@link #isTopLeftAligned()} will return
+	 * <code>true</code>. All characters of the String which is returned by
 	 * {@link #getFieldChars()} which are not used by the groups of this type
-	 * will be removed.
-	 * The groups of this type will be reordered.  
+	 * will be removed. The groups of this type will be reordered.
 	 */
 	public void pack() {
-		//TODO make normalized form (see following todos)
-		//TODO remove inner 0s from bitset union (and apply to fieldchars)
-		//TODO make top left aligned
-		//TODO sort groups
+		// TODO make normalized form (see following todos)
+		// TODO remove inner 0s from bitset union (and apply to fieldchars)
+		// TODO make top left aligned
+		// TODO sort groups
 	}
-	
-	/** Has to be called if {@link #groups} and {@link #cellGroups} have
-	 * changed, to be able to recalculate affected parameters
+
+	/**
+	 * Has to be called if {@link #groups} and {@link #cellGroups} have changed,
+	 * to be able to recalculate affected parameters
 	 */
 	private void resetDimension() {
 		height = -1;
 	}
-	
+
 	/**
 	 * If the parameters {@link #groups} and {@link #cellGroups} have been
 	 * changed, all properties which depend on them will be recalculated.
@@ -359,5 +360,5 @@ public class Type {
 			topLeftAligned = minRow == 0 && minColumn == 0;
 		}
 	}
-	
+
 }
