@@ -46,8 +46,9 @@ public class Field {
 					+" does not exist");
 		if (field[row][column] != bitset) {
 			field[row][column] = bitset;
-			for (FieldChangeHandler handler : changeHandlers)
-				handler.onChange(row, column, bitset);
+			if (changeHandlers != null)
+				for (FieldChangeHandler handler : changeHandlers)
+					handler.onChange(row, column, bitset);
 		}
 	}
 	
