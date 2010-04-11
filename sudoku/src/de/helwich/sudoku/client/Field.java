@@ -17,7 +17,7 @@ public class Field {
 
 	private final Type type;
 	private int[][] field;
-	private List<FieldChangeHandler> changeHandlers;
+	private List<CellChangeHandler> changeHandlers;
 	
 	//TODO maybe optimize class eg by not needing type copy
 	/**
@@ -47,7 +47,7 @@ public class Field {
 		if (field[row][column] != bitset) {
 			field[row][column] = bitset;
 			if (changeHandlers != null)
-				for (FieldChangeHandler handler : changeHandlers)
+				for (CellChangeHandler handler : changeHandlers)
 					handler.onChange(row, column, bitset);
 		}
 	}
@@ -75,21 +75,14 @@ public class Field {
 	 * 
 	 * @param  changeHandler
 	 */
-	public void addChangeHandler(FieldChangeHandler changeHandler) {
+	public void addChangeHandler(CellChangeHandler changeHandler) {
 		if (changeHandlers == null)
-			changeHandlers = new LinkedList<FieldChangeHandler>();
+			changeHandlers = new LinkedList<CellChangeHandler>();
 		changeHandlers.add(changeHandler);
 	}
-	
-	/**
-	 * An interface which can be used to get notified on field value changes.
-	 * 
-	 * @see Field#addChangeHandler(FieldChangeHandler)
-	 */
-	public static interface FieldChangeHandler {
-		
-		public void onChange(int row, int column, int bitset);
-		
+
+	public Type getType() {
+		return type;
 	}
 	
 }
