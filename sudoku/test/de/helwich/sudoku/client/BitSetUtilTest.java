@@ -84,6 +84,20 @@ public class BitSetUtilTest {
 	}
 
 	@Test
+	public void testGetPossiblePermutations3() {
+		int b = 0;
+		for (int i = 0; i < 4; i++)
+			b = set(b, i);
+		// b = {0,1,2,3}
+		int[] bitsets = new int[] {clear(b, 0)/* {1,2,3} */, b, b, set(0, 0) /* {0} */};
+		int[] newbs = getPossiblePermutations(bitsets);
+		assertEquals(set(0, 0), newbs[bitsets.length-1]);
+		b = clear(b, 0);
+		for (int i = 0; i < bitsets.length-1; i ++)
+			assertEquals("element "+i+" is not "+b, b, newbs[i]);
+	}
+	
+	@Test
 	public void testCardinality() {
 		assertEquals(4, cardinality(bitset));
 	}
