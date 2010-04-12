@@ -159,6 +159,21 @@ public class BitSetUtil {
 		return nsets;
 	}
 
+	/**
+	 * Recursively check all possible permutations.
+	 * 
+	 * @param  bitsets
+	 *         static input bitset sets
+	 * @param  newbitsets
+	 *         the new bitset sets which are filled by this operation
+	 * @param  bitsetIndex
+	 *         test bitset in the <code>bitsets</code> parameter with this index
+	 * @param  usedBits
+	 *         the indices given by this bitset are already used before and must
+	 *         be ignored
+	 * @return <code>true</code> if a permutation exists from the given
+	 *         <code>bitsetIndex</code>.
+	 */
 	private static boolean getPossiblePermutations(int[] bitsets,
 			int[] newbitsets, int bitsetIndex, int usedBits) {
 		// TODO optimize
@@ -166,17 +181,22 @@ public class BitSetUtil {
 		bitset = bitset & (~usedBits);
 		if (bitset == 0)
 			return false;
-		if (bitsetIndex + 1 == bitsets.length)
-			newbitsets[bitsetIndex] |= bitset;
-		else
-			for (int i = nextSetBit(bitset, 0); i >= 0; i = nextSetBit(bitset,
-					i + 1)) {
-				int used = set(usedBits, i);
+		if (bitsetIndex + 1 == bitsets.length) { // last bitset
+			newbitsets[bitsetIndex] |= bitset; // add all remaining indices to the last new bitset
+			return true;
+		} else { // inner bitset
+			// iterate over indices of current bitset
+			boolean ret = false;
+			for (int i = nextSetBit(bitset, 0); i >= 0; i = nextSetBit(bitset, i + 1)) {
+				int used = set(usedBits, i); // current index is used now
 				if (getPossiblePermutations(bitsets, newbitsets,
-						bitsetIndex + 1, used))
+						bitsetIndex + 1, used)) {
 					newbitsets[bitsetIndex] = set(newbitsets[bitsetIndex], i);
+					ret = true;
+				}
 			}
-		return newbitsets[bitsetIndex] != 0;
+			return ret;
+		}
 	}
 
 }
