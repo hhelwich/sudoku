@@ -12,8 +12,15 @@ import org.junit.Test;
  */
 public class CellIndexTest {
 
+	private CellIndex idx0, idx1, idx1_b, idx2, idx3;
+	
 	@Before
 	public void setUp() throws Exception {
+		idx0 = new CellIndex(0, 0);
+		idx1 = new CellIndex(1, 1);
+		idx1_b = new CellIndex(1, 1);
+		idx2 = new CellIndex(1, 3);
+		idx3 = new CellIndex(2, 2);
 	}
 
 	@After
@@ -22,12 +29,10 @@ public class CellIndexTest {
 	
 	@Test
 	public void testAll() {
-		CellIndex index = new CellIndex(1, 2);
-		assertEquals(1, index.getRow());
-		assertEquals(2, index.getColumn());
-		index = new CellIndex(0, 0);
-		assertEquals(0, index.getRow());
-		assertEquals(0, index.getColumn());
+		assertEquals(1, idx2.getRow());
+		assertEquals(3, idx2.getColumn());
+		assertEquals(0, idx0.getRow());
+		assertEquals(0, idx0.getColumn());
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -42,12 +47,22 @@ public class CellIndexTest {
 	
 	@Test
 	public void testCompareTo() {
-		CellIndex idx1 = new CellIndex(1, 1);
-		CellIndex idx2 = new CellIndex(1, 3);
-		CellIndex idx3 = new CellIndex(2, 2);
 		assertTrue(idx1.compareTo(idx2) < 0);
 		assertTrue(idx2.compareTo(idx3) < 0);
 		assertTrue(idx1.compareTo(idx3) < 0);
+		assertTrue(idx1.compareTo(idx1_b) == 0);
+	}
+	
+	@Test
+	public void testEquals() {
+		assertTrue(idx1.equals(idx1_b));
+		assertTrue(idx1_b.equals(idx1));
+		assertFalse(idx1.equals(idx2));
+		assertFalse(idx2.equals(idx1));
+		assertFalse(idx1.equals(idx3));
+		assertFalse(idx3.equals(idx1));
+		assertFalse(idx2.equals(idx3));
+		assertFalse(idx3.equals(idx2));
 	}
 
 }
