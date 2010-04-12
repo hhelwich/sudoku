@@ -47,5 +47,10 @@ public class CellIndex implements Comparable<CellIndex> {
 		CellIndex other = (CellIndex) obj;
 		return column == other.column && row == other.row;
 	}
+
+	@Override
+	public String toString() {
+		return "("+row+","+column+")";
+	}
 	
 }

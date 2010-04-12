@@ -1,5 +1,7 @@
 package de.helwich.sudoku.client;
 
+import java.util.Arrays;
+
 /**
  * An immutable set of sudoku playfield cells. Aggregated instances of this
  * class are hold in a sudoku {@link Type} instance which defines a sudoku
@@ -58,6 +60,11 @@ public class CellGroup {
 	
 	public CellIndex[] getCellIndices() {
 		return cellIndices;
+	}
+
+	@Override
+	public String toString() {
+		return "["+ Arrays.toString(cellIndices) + "]";
 	}
 	
 }
