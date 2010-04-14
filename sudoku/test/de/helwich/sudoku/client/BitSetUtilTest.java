@@ -3,6 +3,9 @@ package de.helwich.sudoku.client;
 import static de.helwich.sudoku.client.BitSetUtil.*;
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.Random;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,7 +15,7 @@ import org.junit.Test;
  */
 public class BitSetUtilTest {
 
-	int bitset;
+	private int bitset;
 	
 	@Before
 	public void setUp() throws Exception {
@@ -55,6 +58,24 @@ public class BitSetUtilTest {
 					get(bitset, i));
 	}
 
+	@Test
+	public void testSetByIndices() {
+		testSetByIndices(0, 0, 31);
+		testSetByIndices(0, 0, 1);
+		testSetByIndices(0, 5, 12);
+		testSetByIndices(0xFFFF, 5, 12);
+	}
+
+	private void testSetByIndices(int bitset, int fromIndex, int toIndex) {
+		int bs = set(bitset, fromIndex, toIndex);
+		for (int i = fromIndex; i < toIndex; i++)
+			assertTrue(get(bs, i));
+		for (int i = 0; i < fromIndex; i++)
+			assertEquals(get(bitset, i), get(bs, i));
+		for (int i = toIndex; i <= MAX_INDEX; i++)
+			assertEquals(get(bitset, i), get(bs, i));
+	}
+	
 	@Test
 	public void testGetPossiblePermutations() {
 		int count = 6;
@@ -100,6 +121,52 @@ public class BitSetUtilTest {
 	@Test
 	public void testCardinality() {
 		assertEquals(4, cardinality(bitset));
+	}
+	
+	private static final Random random = new Random();
+	
+	private int getRandomSet(int maxIndex) {
+		int ret = 0;
+		for (int j = 0; j <= maxIndex; j++)
+			if (random.nextBoolean())
+				ret = set(ret, j);
+		return ret;
+	}
+	
+	@Test
+	public void testGetPossiblePermutationsFast() {
+		for (int length = 1; length < 6; length ++) {
+			int[] bitsets = new int[length];
+			for (int i = 0; i < 5000; i++) {
+				for (int j = 0; j < length; j++)
+					bitsets[j] = getRandomSet(length-1);
+				int[] shouldbe = getPossiblePermutations(bitsets);
+				int[] is = Arrays.copyOf(bitsets, bitsets.length);
+				getPossiblePermutationsFast(is);
+				for (int k = 0; k < length; k++)
+					if (shouldbe[k] != is[k]) {
+						System.out.println("input  : "+Arrays.toString(bitsets));
+						System.out.println("correct: "+Arrays.toString(shouldbe));
+						System.out.println("output : "+Arrays.toString(is));
+						fail();
+					}
+			}
+		}
+	}
+	
+	@Test
+	public void testGetPossiblePermutationsFastSample() {
+		int[] bitsets = new int[] {9, 5, 15, 6};
+		int[] shouldbe = getPossiblePermutations(bitsets);
+		int[] is = Arrays.copyOf(bitsets, bitsets.length);
+		getPossiblePermutationsFast(is);
+		for (int k = 0; k < bitsets.length; k++)
+			if (shouldbe[k] != is[k]) {
+				System.out.println("input  : "+Arrays.toString(bitsets));
+				System.out.println("correct: "+Arrays.toString(shouldbe));
+				System.out.println("output : "+Arrays.toString(is));
+				fail();
+			}
 	}
 
 	@Test
