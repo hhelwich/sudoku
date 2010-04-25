@@ -70,5 +70,33 @@ public class CellGroup {
 	public String toString() {
 		return "["+ Arrays.toString(cellIndices) + "]";
 	}
+
+	@Override
+	public int hashCode() {
+		return 31 + Arrays.hashCode(cellIndices);
+	}
+
+	/**
+	 * only instances which are used in the same {@link Type} can be compared.
+	 * 
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CellGroup other = (CellGroup) obj;
+		if (!Arrays.equals(cellIndices, other.cellIndices))
+			return false;
+		if (bitset != other.bitset)
+			throw new IllegalArgumentException(
+					"cell groups for the same type and with the same cell "
+					+"indices must have the same bitset");
+		return true;
+	}
 	
 }
