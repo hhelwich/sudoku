@@ -61,6 +61,10 @@ public class CellGroup {
 	public CellIndex[] getCellIndices() {
 		return cellIndices;
 	}
+	
+	public int getSize() {
+		return cellIndices.length;
+	}
 
 	@Override
 	public String toString() {
