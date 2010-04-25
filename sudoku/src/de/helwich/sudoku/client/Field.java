@@ -12,6 +12,7 @@ import java.util.List;
  * This class is used to be able to change the storage implementation later
  * and to add change handlers to be notified when the value of the field is
  * changed.
+ * The initial field cells will contain a zero value.
  * 
  * @author Hendrik Helwich
  */
