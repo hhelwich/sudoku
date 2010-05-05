@@ -51,26 +51,54 @@ public class Field {
 		if (!type.hasCellIndex(row, column))
 			throw new IndexOutOfBoundsException("cell index "+row+","+column
 					+" does not exist");
-		if (field[row][column] != bitset) {
-			// update countNull parameter
-			if (bitset == 0) {
-				if (field[row][column] != 0)
-					countNull ++;
-			} else if (field[row][column] == 0)
-				countNull --;
-			// update countUnique parameter
-			if (cardinality(bitset) == 1) {
-				if (cardinality(field[row][column]) != 1)
-					countUnique ++;
-			} else if (cardinality(field[row][column]) == 1)
-				countUnique --;
-			// store value
-			field[row][column] = bitset;
-			// notify change listeners
-			if (changeHandlers != null)
-				for (CellChangeHandler handler : changeHandlers)
-					handler.onChange(row, column, bitset);
-		}
+		if (setValue(row, column, bitset))
+			notifyChangeHandlers(row, column); // notify change listeners
+	}
+	
+	/**
+	 * Update the field value with the given index to the given value if it 
+	 * has changed.
+	 * The properties {@link #countNull} and {@link #countUnique} are updated.
+	 * Returns <code>true</code> if the field value was updated.
+	 * 
+	 * @param  row
+	 * @param  column
+	 * @param  value
+	 * @return <code>true</code> if the field value was updated
+	 */
+	protected boolean setValue(int row, int column, int value) {
+		if (field[row][column] == value)
+			return false;
+		// update countNull parameter
+		if (value == 0) {
+			if (field[row][column] != 0)
+				countNull ++;
+		} else if (field[row][column] == 0)
+			countNull --;
+		// update countUnique parameter
+		if (cardinality(value) == 1) {
+			if (cardinality(field[row][column]) != 1)
+				countUnique ++;
+		} else if (cardinality(field[row][column]) == 1)
+			countUnique --;
+		// store value
+		field[row][column] = value;
+		return true;
+	}
+	
+	/**
+	 * Call the operation {@link CellChangeHandler#onChange(int, int, int)}
+	 * with the given index and its value for all handlers which are registered
+	 * to this field by the operation
+	 * {@link #addChangeHandler(CellChangeHandler)}.
+	 * 
+	 * @param  row
+	 * @param  column
+	 */
+	protected void notifyChangeHandlers(int row, int column) {
+		if (changeHandlers != null)
+			for (CellChangeHandler handler : changeHandlers)
+				handler.onChange(row, column, field[row][column]);
 	}
 	
 	/**
