@@ -28,10 +28,11 @@ public class SolveField extends Field {
 		CellIndex index = new CellIndex(row, column);
 		int oldValue = getBitset(row, column);
 		while (true) {
+			newValue &= oldValue;
 			if (oldValue != newValue) {
+				calculateEffect(index, newValue, oldValue);
 				setValue(index.getRow(), index.getColumn(), newValue);
 				storeChangedIndex(index);
-				calculateEffect(index, newValue, oldValue);
 			}
 			// get next cell index and value to be updated or exit loop if finished
 			Entry<CellIndex, Integer> index2 = getNextMaskIndex();
@@ -115,7 +116,7 @@ public class SolveField extends Field {
 							if (c == card + 1) { // set is complete
 								for (int m = 0; m < effectIndices.size(); m++) {
 									int gp = effectIndixesGroups.get(m);
-									if ((gp & gps2) != 0) {
+									if (gp == gps2) {
 										boolean bla = true;
 										for (int l=i*card; l<=lastIndex; l++)
 											if (m == k || indexSets.get(l) == m) {
