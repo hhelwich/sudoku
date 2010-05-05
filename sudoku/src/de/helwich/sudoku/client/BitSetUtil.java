@@ -1,8 +1,5 @@
 package de.helwich.sudoku.client;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 
 /**
  * Static operations to operate with int bitsets (32 bit).
@@ -17,7 +14,7 @@ public class BitSetUtil {
 	public static final int MAX_INDEX = 31;
 
 	/** int with all bits set */
-	private static final int INT_MASK = 0xffffffff;
+	public static final int INT_MASK = 0xffffffff;
 
 	/**
 	 * Sets the bit at the specified index to <code>true</code>.
@@ -174,114 +171,6 @@ public class BitSetUtil {
 	 */
 	public static boolean subset(int subbitset, int bitset) {
 		return (bitset & subbitset) == subbitset;
-	}
-	
-	/**
-	 * Faster try of {@link #getPossiblePermutations(int[])}
-	 * 
-	 * @param  bitsets
-	 */
-	public static void getPossiblePermutationsFast(int[] bitsets) {
-		Map<Integer, Integer> map = new HashMap<Integer, Integer>();
-		for (int i = 0 ; i < bitsets.length; i++) {
-			if (bitsets[i] == 0) {
-				for (i = 0 ; i < bitsets.length; i++)
-					bitsets[i] = 0;
-				return;
-			}
-			for (int key : map.keySet())
-				if (subset(bitsets[i], key))
-					map.put(key, map.get(key)+1);
-			Integer set = map.get(bitsets[i]);
-			if (set == null) {
-				int cnt = 1;
-				for (int j = 0 ; j < i; j++) 
-					if (subset(bitsets[j], bitsets[i]))
-						cnt ++;
-				map.put(bitsets[i], cnt);
-			}
-			for (int key : new HashSet<Integer>(map.keySet())) {
-				int union = bitsets[i] | key;
-				if (!map.containsKey(union)) {
-					int count = 0;
-					for (int j = 0 ; j <= i; j++) 
-						if (subset(bitsets[j], union))
-							count ++;
-					map.put(union, count);
-				}
-			}
-		}
-		for (int s : map.keySet()) {
-			int v = map.get(s);
-			if (cardinality(s) == v) {
-				boolean change = false;
-				for (int i = 0 ; i < bitsets.length; i++)
-					if (!subset(bitsets[i], s)) {
-						int n = bitsets[i] & (~s);
-						change |= n != bitsets[i];
-						bitsets[i] = n;
-					}
-				if (change) {
-					getPossiblePermutationsFast(bitsets);
-					return;
-				}
-			} else if (cardinality(s) < v)
-				for (int i = 0 ; i < bitsets.length; i++)
-					bitsets[i] = 0;
-		}
-	}
-	
-	/**
-	 * For the given list of bitsets return all possible permutations of the bit
-	 * indices.
-	 * 
-	 * @param  bitsets
-	 * @return
-	 */
-	public static int[] getPossiblePermutations(int[] bitsets) {
-		int[] nsets = new int[bitsets.length];
-		getPossiblePermutations(bitsets, nsets, 0, 0);
-		return nsets;
-	}
-
-	/**
-	 * Recursively check all possible permutations.
-	 * 
-	 * @param  bitsets
-	 *         static input bitset sets
-	 * @param  newbitsets
-	 *         the new bitset sets which are filled by this operation
-	 * @param  bitsetIndex
-	 *         test bitset in the <code>bitsets</code> parameter with this index
-	 * @param  usedBits
-	 *         the indices given by this bitset are already used before and must
-	 *         be ignored
-	 * @return <code>true</code> if a permutation exists from the given
-	 *         <code>bitsetIndex</code>.
-	 */
-	private static boolean getPossiblePermutations(int[] bitsets,
-			int[] newbitsets, int bitsetIndex, int usedBits) {
-		// TODO optimize
-		int bitset = bitsets[bitsetIndex];
-		bitset = bitset & (~usedBits);
-		if (bitset == 0)
-			return false;
-		if (bitsetIndex + 1 == bitsets.length) { // last bitset
-			newbitsets[bitsetIndex] |= bitset; // add all remaining indices to the last new bitset
-			return true;
-		} else { // inner bitset
-			// iterate over indices of current bitset
-			boolean ret = false;
-			for (int i = nextSetBit(bitset, 0); i >= 0; i = nextSetBit(bitset, i + 1)) {
-				int used = set(usedBits, i); // current index is used now
-				if (getPossiblePermutations(bitsets, newbitsets,
-						bitsetIndex + 1, used)) {
-					newbitsets[bitsetIndex] = set(newbitsets[bitsetIndex], i);
-					ret = true;
-				}
-			}
-			return ret;
-		}
 	}
 
 }
