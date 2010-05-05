@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class Field {
 
-	private final Type type;
+	protected final Type type;
 	private int[][] field;
 	private List<CellChangeHandler> changeHandlers;
 	private int countNull; // number of cells with a zero value
@@ -48,9 +48,13 @@ public class Field {
 	 */
 	public void setBitset(int row, int column, int bitset)
 			throws IndexOutOfBoundsException {
-		if (!type.hasCellIndex(row, column))
-			throw new IndexOutOfBoundsException("cell index "+row+","+column
-					+" does not exist");
+		setBitsetPrivate(row, column, bitset);
+	}
+	
+
+	private void setBitsetPrivate(int row, int column, int bitset)
+			throws IndexOutOfBoundsException {
+		assert type.hasCellIndex(row, column);
 		if (setValue(row, column, bitset))
 			notifyChangeHandlers(row, column); // notify change listeners
 	}
@@ -101,6 +105,23 @@ public class Field {
 				handler.onChange(row, column, field[row][column]);
 	}
 	
+	public void fillMin() {
+		for (CellIndex index : type.getCellIndices())
+			setBitsetPrivate(index.getRow(), index.getColumn(), 0);
+	}
+	
+	public void fillMax() {
+		for (CellIndex index : type.getCellIndices())
+			setBitsetPrivate(index.getRow(), index.getColumn(), getFullIndex(index));
+	}
+	
+	private int getFullIndex(CellIndex index) {
+		int value = INT_MASK;
+		for (CellGroup group : type.getCellGroups(index))
+			value &= group.getBitset();
+		return value;
+	}
+	
 	/**
 	 * Returns <code>true</code> if the operation {@link #getBitset(int, int)}
 	 * will return a value with cardinality 1 for all valid field cell indices.
@@ -134,9 +155,7 @@ public class Field {
 	 */
 	public int getBitset(int row, int column)
 			throws IndexOutOfBoundsException {
-		if (!type.hasCellIndex(row, column))
-			throw new IndexOutOfBoundsException("cell index "+row+","+column
-					+" does not exist");
+		assert type.hasCellIndex(row, column);
 		return field[row][column];
 	}
 	
