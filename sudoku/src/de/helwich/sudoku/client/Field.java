@@ -133,6 +133,10 @@ public class Field {
 		return countUnique == type.getCellCount();
 	}
 	
+	public int getUniqueCellCount() {
+		return countUnique;
+	}
+	
 	/**
 	 * Returns <code>true</code> if the operation {@link #getBitset(int, int)}
 	 * will return a zero value for at least one valid field cell index.
