@@ -23,6 +23,7 @@ import java.util.Set;
  * @author Hendrik Helwich
  */
 public class Type {
+	//TODO check constraint: max 32 groups per index (caused by implementation of solveField)
 
 	/**
 	 * all possible field chars. No duplicates allowed; must be in ascending
@@ -111,7 +112,7 @@ public class Type {
 	 *         if the index is out of range
 	 *         (<tt>index &lt; 0 || index &gt;= getCellGroupCount()</tt>)
 	 */
-	public CellGroup getCellGroup(int index) throws IndexOutOfBoundsException {
+	public CellGroup getCellGroup(int index) throws IndexOutOfBoundsException {//TODO remove
 		return groups.get(index);
 	}
 
@@ -120,10 +121,14 @@ public class Type {
 	 * 
 	 * @return
 	 */
-	public int getCellGroupCount() {
+	public int getCellGroupCount() { //TODO remove
 		return groups.size();
 	}
-
+	
+	public Iterable<CellGroup> getCellGroups() { // TODO disable remove operation
+		return groups;
+	}
+	
 	/**
 	 * @param  bitset
 	 * @throws IllegalArgumentException
@@ -182,7 +187,10 @@ public class Type {
 	 * @return
 	 */
 	public boolean hasCellIndex(int row, int column) {
-		CellIndex index = new CellIndex(row, column);
+		return hasCellIndex(new CellIndex(row, column));
+	}
+
+	public boolean hasCellIndex(CellIndex index) {
 		return cellGroups.keySet().contains(index);
 	}
 
@@ -194,8 +202,11 @@ public class Type {
 	 * @param  column
 	 * @return
 	 */
-	public Set<CellGroup> getCellGroups(int row, int column) {
-		CellIndex index = new CellIndex(row, column);
+	public Iterable<CellGroup> getCellGroups(int row, int column) { //TODO remove?
+		return getCellGroups(new CellIndex(row, column));
+	}
+	
+	public Iterable<CellGroup> getCellGroups(CellIndex index) {
 		return cellGroups.get(index);
 	}
 
@@ -221,7 +232,7 @@ public class Type {
 			throws IllegalArgumentException {
 		if (!isStrictMonotonic(fieldChars))
 			throw new IllegalArgumentException(
-					"chars must be in ascending order");
+					"chars must be in ascending order: "+fieldChars);
 		if (getMaxBitsetIndex() >= fieldChars.length())
 			throw new IllegalArgumentException("need at least "
 					+ (getMaxBitsetIndex() + 1) + " characters");
@@ -297,6 +308,14 @@ public class Type {
 	 */
 	public boolean isEmpty() {
 		return cellGroups.keySet().isEmpty();
+	}
+	
+	public int getCellCount() {
+		return cellGroups.size();
+	}
+	
+	public Set<CellIndex> getCellIndices() {
+		return cellGroups.keySet();
 	}
 
 	/**
