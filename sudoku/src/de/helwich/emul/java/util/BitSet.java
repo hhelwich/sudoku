@@ -37,8 +37,6 @@ exception statement from your version. */
 
 package java.util;
 
-import gnu.java.lang.CPStringBuilder;
-
 import java.io.Serializable;
 
 /* Written using "Java Class Libraries", 2nd edition, ISBN 0-201-31002-3
@@ -237,28 +235,6 @@ public class BitSet implements Cloneable, Serializable
     bits[hi_offset] &= -1L << to;
     for (int i = lo_offset + 1; i < hi_offset; i++)
       bits[i] = 0;
-  }
-
-  /**
-   * Create a clone of this bit set, that is an instance of the same
-   * class and contains the same elements.  But it doesn't change when
-   * this bit set changes.
-   *
-   * @return the clone of this object.
-   */
-  public Object clone()
-  {
-    try
-      {
-        BitSet bs = (BitSet) super.clone();
-        bs.bits = (long[]) bits.clone();
-        return bs;
-      }
-    catch (CloneNotSupportedException e)
-      {
-        // Impossible to get here.
-        return null;
-      }
   }
 
   /**
@@ -690,7 +666,7 @@ public class BitSet implements Cloneable, Serializable
    */
   public String toString()
   {
-    CPStringBuilder r = new CPStringBuilder("{");
+    StringBuilder r = new StringBuilder("{");
     boolean first = true;
     for (int i = 0; i < bits.length; ++i)
       {
