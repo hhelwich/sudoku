@@ -9,6 +9,6 @@ package de.helwich.sudoku.client;
  */
 public interface CellChangeHandler {
 		
-	public void onChange(int row, int column, int bitset);
+	public void onChange(Cell index, int value);
 	
 }
