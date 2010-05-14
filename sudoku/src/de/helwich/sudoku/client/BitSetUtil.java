@@ -1,5 +1,7 @@
 package de.helwich.sudoku.client;
 
+import java.util.Random;
+
 
 /**
  * Static operations to operate with int bitsets (32 bit).
@@ -98,6 +100,17 @@ public class BitSetUtil {
 			throws IndexOutOfBoundsException {
 		checkIndexRange(bitIndex, MAX_INDEX);
 		return (bitset & (1 << bitIndex)) != 0;
+	}
+
+	private static Random random = new Random();
+	
+	public static int getRandomIndex(int bitset) {
+		int cardinality = cardinality(bitset);
+		int nr = random.nextInt(cardinality);
+		for (int i = nextSetBit(bitset, 0), j = 0; i >= 0; i = nextSetBit(bitset, i + 1))
+			if (j++ == nr)
+				return i;
+		return -1;
 	}
 
 	/**
