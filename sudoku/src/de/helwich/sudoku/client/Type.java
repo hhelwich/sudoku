@@ -206,7 +206,7 @@ public class Type {
 		return getCellGroups(new CellIndex(row, column));
 	}
 	
-	public Iterable<CellGroup> getCellGroups(CellIndex index) {
+	public Set<CellGroup> getCellGroups(CellIndex index) {
 		return cellGroups.get(index);
 	}
 
