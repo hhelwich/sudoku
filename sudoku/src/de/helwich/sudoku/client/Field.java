@@ -102,24 +102,7 @@ public class Field {
 	protected void notifyChangeHandlers(int row, int column) {
 		if (changeHandlers != null)
 			for (CellChangeHandler handler : changeHandlers)
-				handler.onChange(row, column, field[row][column]);
-	}
-	
-	public void fillMin() {
-		for (CellIndex index : type.getCellIndices())
-			setBitsetPrivate(index.getRow(), index.getColumn(), 0);
-	}
-	
-	public void fillMax() {
-		for (CellIndex index : type.getCellIndices())
-			setBitsetPrivate(index.getRow(), index.getColumn(), getFullIndex(index));
-	}
-	
-	private int getFullIndex(CellIndex index) {
-		int value = INT_MASK;
-		for (CellGroup group : type.getCellGroups(index))
-			value &= group.getBitset();
-		return value;
+				handler.onChange(new Cell(row, column), field[row][column]);
 	}
 	
 	/**
@@ -173,6 +156,11 @@ public class Field {
 		if (changeHandlers == null)
 			changeHandlers = new LinkedList<CellChangeHandler>();
 		changeHandlers.add(changeHandler);
+	}
+	
+	public void removeChangeHandler(CellChangeHandler changeHandler) {
+		if (changeHandlers == null || !changeHandlers.remove(changeHandler))
+			throw new IllegalArgumentException("can not remove handler");
 	}
 
 	public Type getType() {
