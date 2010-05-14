@@ -5,12 +5,12 @@ package de.helwich.sudoku.client;
  * 
  * @author Hendrik Helwich
  */
-public class CellIndex implements Comparable<CellIndex> {
+public class Cell implements Comparable<Cell> {
 
 	private int row;
 	private int column;
 	
-	public CellIndex(int row, int column) {
+	public Cell(int row, int column) {
 		if (row < 0 || column < 0)
 			throw new IllegalArgumentException("index must not be negative");
 		this.row = row;
@@ -26,7 +26,7 @@ public class CellIndex implements Comparable<CellIndex> {
 	}
 
 	@Override
-	public int compareTo(CellIndex index) {
+	public int compareTo(Cell index) {
 		int rd = row - index.row;
 		return rd != 0 ? rd : column - index.column;
 	}
@@ -44,7 +44,7 @@ public class CellIndex implements Comparable<CellIndex> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		CellIndex other = (CellIndex) obj;
+		Cell other = (Cell) obj;
 		return column == other.column && row == other.row;
 	}
 
