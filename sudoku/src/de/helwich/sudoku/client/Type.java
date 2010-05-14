@@ -40,7 +40,7 @@ public class Type {
 	 * be find quickly (e.g. {@link #getCellGroups(int, int)}). This parameter
 	 * must be adapted if the parameter {@link #groups} is changed.
 	 */
-	private Map<CellIndex, Set<CellGroup>> cellGroups = new HashMap<CellIndex, Set<CellGroup>>();
+	private Map<Cell, Set<CellGroup>> cellGroups = new HashMap<Cell, Set<CellGroup>>();
 
 	/** -1 if {@link #groups} and {@link #cellGroups} have changed */
 	private int height;
@@ -148,7 +148,7 @@ public class Type {
 	 * @param  group
 	 */
 	private void addGroupToIndexMap(CellGroup group) {
-		for (CellIndex idx : group.getCellIndices()) {
+		for (Cell idx : group.getCellIndices()) {
 			Set<CellGroup> cgps = cellGroups.get(idx);
 			if (cgps == null) { // new cell index => create empty group set
 				cgps = new HashSet<CellGroup>();
@@ -167,7 +167,7 @@ public class Type {
 	 */
 	private void removeGroupFromIndexMap(int index) {
 		CellGroup group = groups.get(index);
-		for (CellIndex idx : group.getCellIndices()) {
+		for (Cell idx : group.getCellIndices()) {
 			// remove group from the groups index group set
 			Set<CellGroup> gps = cellGroups.get(idx);
 			if (!gps.remove(group))
@@ -187,10 +187,10 @@ public class Type {
 	 * @return
 	 */
 	public boolean hasCellIndex(int row, int column) {
-		return hasCellIndex(new CellIndex(row, column));
+		return hasCellIndex(new Cell(row, column));
 	}
 
-	public boolean hasCellIndex(CellIndex index) {
+	public boolean hasCellIndex(Cell index) {
 		return cellGroups.keySet().contains(index);
 	}
 
@@ -203,10 +203,10 @@ public class Type {
 	 * @return
 	 */
 	public Iterable<CellGroup> getCellGroups(int row, int column) { //TODO remove?
-		return getCellGroups(new CellIndex(row, column));
+		return getCellGroups(new Cell(row, column));
 	}
 	
-	public Set<CellGroup> getCellGroups(CellIndex index) {
+	public Set<CellGroup> getCellGroups(Cell index) {
 		return cellGroups.get(index);
 	}
 
@@ -314,7 +314,7 @@ public class Type {
 		return cellGroups.size();
 	}
 	
-	public Set<CellIndex> getCellIndices() {
+	public Set<Cell> getCellIndices() {
 		return cellGroups.keySet();
 	}
 
@@ -372,7 +372,7 @@ public class Type {
 			int maxRow = -1;
 			int minColumn = Integer.MAX_VALUE;
 			int maxColumn = -1;
-			for (CellIndex index : cellGroups.keySet()) {
+			for (Cell index : cellGroups.keySet()) {
 				if (index.getRow() < minRow)
 					minRow = index.getRow();
 				if (index.getRow() > maxRow)
