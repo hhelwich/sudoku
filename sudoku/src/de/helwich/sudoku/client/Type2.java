@@ -19,12 +19,19 @@ public class Type2 {
 	private final String chars;
 
 	private final IGroup[] groups;
+	
+	private final int height;
+	private final int width;
 	                           
 	public Type2(Group... groups) {
 		List<Character> chars = new ArrayList<Character>();
 		List<Cell> cells = new ArrayList<Cell>();
 		this.groups = new IGroup[groups.length];
 		int groupIndex = 0;
+		int maxHeight = 0;
+		int minHeight = Integer.MAX_VALUE;
+		int maxWidth = 0;
+		int minWidth = Integer.MAX_VALUE;
 		for (Group group : groups) {
 			BitSet cellSubSet = new BitSet();
 			for (Cell cell : group.getCells()) {
@@ -37,6 +44,15 @@ public class Type2 {
 						shiftRight(this.groups[i].getCellSubSet(), idx);
 				}
 				cellSubSet.set(idx);
+				//
+				if (cell.getRow() > maxHeight)
+					maxHeight = cell.getRow();
+				else if (cell.getRow() < minHeight)
+					minHeight = cell.getRow();
+				if (cell.getColumn() > maxWidth)
+					maxWidth = cell.getColumn();
+				else if (cell.getColumn() < minWidth)
+					minWidth = cell.getColumn();
 			}
 			BitSet charSubSet = new BitSet();
 			String grpchrs = group.getChars();
@@ -54,7 +70,10 @@ public class Type2 {
 			this.groups[groupIndex] = new IGroup(cellSubSet, charSubSet);
 			groupIndex++;
 		}
-		
+		if (minHeight != 0 || minWidth != 0)
+			throw new IllegalArgumentException("field must not have empty top left rows/columns");
+		height = maxHeight + 1;
+		width = maxWidth + 1;
 		this.cells = cells.toArray(new Cell[cells.size()]);
 		//TODO sort groups
 //		Arrays.sort(this.groups, new Comparator<IGroup>() {
@@ -155,6 +174,24 @@ public class Type2 {
 				bs.set(i);
 		}
 		return bs;
+	}
+	
+	/**
+	 * Returns the width of the sudoku type.
+	 * 
+	 * @return The width of the sudoku type.
+	 */
+	public int getWidth() {
+		return width;
+	}
+
+	/**
+	 * Returns the height of the sudoku type.
+	 * 
+	 * @return The height of the sudoku type.
+	 */
+	public int getHeight() {
+		return height;
 	}
 	
 	private static class IGroup {
