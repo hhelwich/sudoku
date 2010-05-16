@@ -14,8 +14,8 @@ import java.util.Map.Entry;
  */
 public class SolveField extends Field {
 	
-	private Map<CellIndex, Integer> masksToApply = new LinkedHashMap<CellIndex, Integer>();
-	private List<CellIndex> changedIndices = new ArrayList<CellIndex>();
+	private Map<Cell, Integer> masksToApply = new LinkedHashMap<Cell, Integer>();
+	private List<Cell> changedIndices = new ArrayList<Cell>();
 
 	public SolveField(Type type) {
 		super(type);
@@ -27,7 +27,7 @@ public class SolveField extends Field {
 	public synchronized void setBitset(int row, int column, int newValue)
 			throws IndexOutOfBoundsException {
 		assert type.hasCellIndex(row, column);
-		CellIndex index = new CellIndex(row, column);
+		Cell index = new Cell(row, column);
 		int oldValue = getBitset(row, column);
 		newValue &= oldValue;
 		if (debug)
@@ -45,7 +45,7 @@ public class SolveField extends Field {
 				if (debug)
 					System.out.println(" no change "+newValue);
 			// get next cell index and value to be updated or exit loop if finished
-			Entry<CellIndex, Integer> index2 = getNextMaskIndex();
+			Entry<Cell, Integer> index2 = getNextMaskIndex();
 			if (index2 == null)
 				break;
 			index = index2.getKey();
@@ -56,7 +56,7 @@ public class SolveField extends Field {
 	}
 
 	
-	private List<CellIndex> effectIndices = new ArrayList<CellIndex>();
+	private List<Cell> effectIndices = new ArrayList<Cell>();
 	private List<Integer> effectIndicesGroups = new ArrayList<Integer>();
 	
 	private List<Integer> indexSets = new ArrayList<Integer>();
@@ -67,21 +67,21 @@ public class SolveField extends Field {
 	private List<Integer> indexGroups2 = new ArrayList<Integer>();
 	private List<Integer> indexValues2 = new ArrayList<Integer>();
 	
-	private void calculateEffect(CellIndex index, int newValue, int oldValue) {
+	private void calculateEffect(Cell index, int newValue, int oldValue) {
 		// get groups which contain the given index
 		Iterable<CellGroup> groups = type.getCellGroups(index);
 		
 		if (newValue == 0) {
 			// value set is empty => all group indices must be empty too
 			for (CellGroup group : groups)
-				for (CellIndex idx : group.getCellIndices())
+				for (Cell idx : group.getCellIndices())
 					storeMask(idx, 0);
 			return;
 		} else if (cardinality(newValue) == 1) {
 			// value set does contain only one value => remove value from all
 			// other indices values
 			for (CellGroup group : groups)
-				for (CellIndex idx : group.getCellIndices())
+				for (Cell idx : group.getCellIndices())
 					if (!idx.equals(index)) //TODO use "==" later
 						storeMask(idx, ~newValue);
 			return;
@@ -116,7 +116,7 @@ public class SolveField extends Field {
 					int ngps = effectIndicesGroups.get(k) & gps;
 					if (ngps != 0) { // groups not empty => set could be relevant
 						// get cell index of new element which should be united with the set i
-						CellIndex in = effectIndices.get(k);
+						Cell in = effectIndices.get(k);
 						// get old and new values of the set i unified with the new element
 						int nv = getBitset(in.getRow(), in.getColumn());
 						int ov = nv | oldValue;
@@ -182,7 +182,7 @@ public class SolveField extends Field {
 		effectIndicesGroups.clear();
 	}
 	
-	private void calculateIndexGroups(CellIndex index) {
+	private void calculateIndexGroups(Cell index) {
 		Iterable<CellGroup> groups = type.getCellGroups(index);
 		// store indices which are grouped with the given index and calculate
 		// in which groups they are
@@ -192,8 +192,8 @@ public class SolveField extends Field {
 		effectIndices.add(index);
 		effectIndicesGroups.add(0);
 		for (CellGroup group : groups) {
-			CellIndex[] indices = group.getCellIndices();
-			for (CellIndex idx : indices) {
+			Cell[] indices = group.getCellIndices();
+			for (Cell idx : indices) {
 				int v = set(0, groupIndex);
 				int i = effectIndices.indexOf(idx); // search index in index list
 				if (i != -1) // index is in the list => add group id to group id set
@@ -225,28 +225,28 @@ public class SolveField extends Field {
 		indexValues2 = tmp;
 	}
 
-	private void storeMask(CellIndex index, int mask) {
+	private void storeMask(Cell index, int mask) {
 		Integer m = masksToApply.get(index);
 		if (m != null)
 			mask &= m;
 		masksToApply.put(index, mask);
 	}
 	
-	private Entry<CellIndex, Integer> getNextMaskIndex() {
+	private Entry<Cell, Integer> getNextMaskIndex() {
 		if (masksToApply.isEmpty())
 			return null;
-		Iterator<Entry<CellIndex, Integer>> it = masksToApply.entrySet().iterator();
-		Entry<CellIndex, Integer> entry = it.next();
+		Iterator<Entry<Cell, Integer>> it = masksToApply.entrySet().iterator();
+		Entry<Cell, Integer> entry = it.next();
 		it.remove();
 		return entry;
 	}
 	
-	private void storeChangedIndex(CellIndex index) {
+	private void storeChangedIndex(Cell index) {
 		changedIndices.add(index);
 	}
 	
 	private void notifyChangedIndices() {
-		for (CellIndex index : changedIndices)
+		for (Cell index : changedIndices)
 			notifyChangeHandlers(index.getRow(), index.getColumn());
 		changedIndices.clear();
 	}
