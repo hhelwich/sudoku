@@ -102,7 +102,7 @@ public class Field {
 	protected void notifyChangeHandlers(int row, int column) {
 		if (changeHandlers != null)
 			for (CellChangeHandler handler : changeHandlers)
-				handler.onChange(new Cell(row, column), field[row][column]);
+				handler.onChange(new Cell(row, column));
 	}
 	
 	/**
