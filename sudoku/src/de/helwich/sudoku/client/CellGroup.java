@@ -16,7 +16,7 @@ import java.util.Arrays;
 public class CellGroup {
 
 	private int bitset;
-	private CellIndex[] cellIndices;
+	private Cell[] cellIndices;
 	
 	/**
 	 * @param  bitset
@@ -32,7 +32,7 @@ public class CellGroup {
 	 *         of the bitset and the cell indices are not equal, or if the
 	 *         cell indices are not a strict monotonic.
 	 */
-	public CellGroup(int bitset, CellIndex... cellIndices)
+	public CellGroup(int bitset, Cell... cellIndices)
 			throws IllegalArgumentException {
 		if (cellIndices.length == 0)
 			throw new IllegalArgumentException("group must not be empty");
@@ -44,9 +44,9 @@ public class CellGroup {
 		this.cellIndices = cellIndices;
 	}
 	
-	static boolean isSortedSet(CellIndex[] cellIndices) {
-		CellIndex idx = null;
-		for (CellIndex i : cellIndices)
+	static boolean isSortedSet(Cell[] cellIndices) {
+		Cell idx = null;
+		for (Cell i : cellIndices)
 			if (idx != null && i.compareTo(idx) <= 0)
 				return false;
 			else
@@ -58,7 +58,7 @@ public class CellGroup {
 		return bitset;
 	}
 	
-	public CellIndex[] getCellIndices() {
+	public Cell[] getCellIndices() {
 		return cellIndices;
 	}
 	
