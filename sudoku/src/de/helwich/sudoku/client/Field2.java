@@ -51,7 +51,7 @@ public class Field2 {
 	private static final BitSet cloneBitSet(BitSet bs) {
 		BitSet bs2 = new BitSet();
 		bs2.or(bs);
-		return bs;
+		return bs2;
 	}
 	
 	public boolean isSolved() {
