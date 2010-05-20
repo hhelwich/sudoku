@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -26,78 +27,89 @@ public class Type2 {
 	public Type2(Group... groups) {
 		List<Character> chars = new ArrayList<Character>();
 		List<Cell> cells = new ArrayList<Cell>();
-		this.groups = new IGroup[groups.length];
-		int groupIndex = 0;
 		int maxHeight = 0;
 		int minHeight = Integer.MAX_VALUE;
 		int maxWidth = 0;
 		int minWidth = Integer.MAX_VALUE;
 		for (Group group : groups) {
-			BitSet cellSubSet = new BitSet();
 			for (Cell cell : group.getCells()) {
 				int idx = Collections.binarySearch(cells, cell);
 				if (idx < 0) { // not in list
-					idx = -idx -1;
-					cells.add(idx, cell);
-					// shift all group cell bitsets right at position idx
-					for (int i = 0; i < groupIndex; i++)
-						shiftRight(this.groups[i].getCellSubSet(), idx);
+					cells.add(-idx -1, cell);
+					//
+					if (cell.getRow() > maxHeight)
+						maxHeight = cell.getRow();
+					else if (cell.getRow() < minHeight)
+						minHeight = cell.getRow();
+					if (cell.getColumn() > maxWidth)
+						maxWidth = cell.getColumn();
+					else if (cell.getColumn() < minWidth)
+						minWidth = cell.getColumn();
 				}
-				cellSubSet.set(idx);
-				//
-				if (cell.getRow() > maxHeight)
-					maxHeight = cell.getRow();
-				else if (cell.getRow() < minHeight)
-					minHeight = cell.getRow();
-				if (cell.getColumn() > maxWidth)
-					maxWidth = cell.getColumn();
-				else if (cell.getColumn() < minWidth)
-					minWidth = cell.getColumn();
 			}
-			BitSet charSubSet = new BitSet();
 			String grpchrs = group.getChars();
-			for (int i = 0; i < grpchrs.length(); i++) {
+			for (int i = grpchrs.length()-1; i >= 0; i--) {
 				int idx = Collections.binarySearch(chars, grpchrs.charAt(i));
-				if (idx < 0) { // not in list
-					idx = -idx -1;
-					chars.add(idx, grpchrs.charAt(i));
-					// shift all group cell bitsets right at position idx
-					for (int j = 0; j < groupIndex; j++)
-						shiftRight(this.groups[j].getCharSubSet(), idx);
-				}
-				charSubSet.set(idx);
+				if (idx < 0) // not in list
+					chars.add(-idx -1, grpchrs.charAt(i));
 			}
-			this.groups[groupIndex] = new IGroup(cellSubSet, charSubSet);
-			groupIndex++;
 		}
+		
 		if (minHeight != 0 || minWidth != 0)
 			throw new IllegalArgumentException("field must not have empty top left rows/columns");
 		height = maxHeight + 1;
 		width = maxWidth + 1;
+		
 		this.cells = cells.toArray(new Cell[cells.size()]);
-		//TODO sort groups
-//		Arrays.sort(this.groups, new Comparator<IGroup>() {
-//			@Override
-//			public int compare(IGroup g1, IGroup g2) {
-//				return 0;
-//			}
-//		});
-		this.chars = box(chars);
-	}
-	
-	private static String box(List<Character> chars) {
-		char[] string = new char[chars.size()];
-		for (int i = 0; i < chars.size(); i++)
-			string[i] = chars.get(i);
-		return new String(string);
-	}
-	
-	private static final void shiftRight(BitSet bs, int pos) {
-		for (int i = bs.length()-1; i >= pos; i--)
-			if (bs.get(i)) {
-				bs.clear(i);
-				bs.set(i+1);
+		cells = null;
+		char[] chrs = box(chars);
+		chars = null;
+		this.chars = new String(chrs);
+
+		List<IGroup> grps = new ArrayList<IGroup>(groups.length);
+		for (Group group : groups) {
+			BitSet cellSubSet = new BitSet();
+			for (Cell cell : group.getCells()) {
+				int idx = Arrays.binarySearch(this.cells, cell);
+				assert idx >= 0;
+				cellSubSet.set(idx);
 			}
+			BitSet charSubSet = new BitSet();
+			String grpchrs = group.getChars();
+			for (int i = 0; i < grpchrs.length(); i++) {
+				int idx = Arrays.binarySearch(chrs, grpchrs.charAt(i));
+				assert idx >= 0;
+				charSubSet.set(idx);
+			}
+			IGroup grp = new IGroup(cellSubSet, charSubSet);
+			int idx = Collections.binarySearch(grps, grp, GROUP_COMPARATOR);
+			if (idx < 0) // not found
+				grps.add(-idx-1, grp);
+		}
+		this.groups = grps.toArray(new IGroup[grps.size()]);
+	}
+	
+	private static final Comparator<IGroup> GROUP_COMPARATOR = new Comparator<IGroup>() {
+		@Override
+		public int compare(IGroup g1, IGroup g2) {
+			int j, i = 0;
+			do {
+				j = g1.getCellSubSet().nextSetBit(i);
+				i = g2.getCellSubSet().nextSetBit(i);
+				if (j != i)
+					return j - i;
+			} while (i++ >= 0);
+			if (!g1.getCharSubSet().equals(g2.getCharSubSet()))
+				throw new IllegalArgumentException("groups with same cells but with different chars");
+			return 0;
+		}
+	};
+	
+	private static char[] box(List<Character> chars) {
+		char[] chrs = new char[chars.size()];
+		for (int i = 0; i < chars.size(); i++)
+			chrs[i] = chars.get(i);
+		return chrs;
 	}
 
 	public int getCellCount() {
@@ -112,28 +124,37 @@ public class Type2 {
 		return cells[index];
 	}
 	
-	public Iterator<Cell> getCellIterator(final BitSet bs) {
-		return new Iterator<Cell>() {
-			
-			private int idx = bs.nextSetBit(0);
-			
+	public Iterable<Cell> getCellIterator(final BitSet bs) {
+		return new Iterable<Cell>() {
 			@Override
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-			
-			@Override
-			public Cell next() {
-				Cell cell = cells[idx];
-				idx = bs.nextSetBit(idx + 1);
-				return cell;
-			}
-			
-			@Override
-			public boolean hasNext() {
-				return idx != -1;
+			public Iterator<Cell> iterator() {
+				return new Iterator<Cell>() {
+					
+					private int idx = bs.nextSetBit(0);
+					
+					@Override
+					public void remove() {
+						throw new UnsupportedOperationException();
+					}
+					
+					@Override
+					public Cell next() {
+						Cell cell = cells[idx];
+						idx = bs.nextSetBit(idx + 1);
+						return cell;
+					}
+					
+					@Override
+					public boolean hasNext() {
+						return idx != -1;
+					}
+				};
 			}
 		};
+	}
+	
+	public Iterable<Cell> getCellIterator() {
+		return Arrays.asList(cells);
 	}
 
 	public String getChars() {
@@ -144,23 +165,12 @@ public class Type2 {
 		return groups.length;
 	}
 	
-	public BitSet getGroupCells(BitSet groupIndices) {
+	public BitSet getGroupCellUnion(BitSet groupIndices) {
 		BitSet bs = new BitSet();
 		for (int i = groupIndices.nextSetBit(0); i >= 0; i = groupIndices.nextSetBit(i + 1))
 			bs.or(groups[i].getCellSubSet());
 		return bs;
 	}
-	
-//	public BitSet getGroupCells(BitSet groupIndices) {
-//		BitSet bs = new BitSet();
-//		int i = groupIndices.nextSetBit(0);
-//		if (i != -1) {
-//			bs.or(groups[i].getCellSubSet());
-//			for (i = groupIndices.nextSetBit(i + 1); i >= 0; i = groupIndices.nextSetBit(i + 1))
-//				bs.and(groups[i].getCellSubSet());
-//		}
-//		return bs;
-//	}
 	
 	public BitSet getCellGroups(BitSet cellIndices) {
 		BitSet bs = new BitSet();
@@ -172,6 +182,17 @@ public class Type2 {
 			tmp.and(groups[i].getCellSubSet());
 			if (tmp.equals(cellIndices))
 				bs.set(i);
+		}
+		return bs;
+	}
+	
+	public BitSet getGroupCharIntersection(BitSet groupIndices) {
+		BitSet bs = new BitSet();
+		int i = groupIndices.nextSetBit(0);
+		if (i != -1) {
+			bs.or(groups[i].getCharSubSet());
+			for (i = groupIndices.nextSetBit(i + 1); i >= 0; i = groupIndices.nextSetBit(i + 1))
+				bs.and(groups[i].getCharSubSet());
 		}
 		return bs;
 	}
