@@ -22,7 +22,10 @@ public class Field2 {
 	}
 	
 	public void setValue(Cell cell, BitSet value) {
-		int idx = type.getCellIndex(cell);
+		setValue(type.getCellIndex(cell), value);
+	}
+	
+	public void setValue(int idx, BitSet value) {
 		if (!values[idx].equals(value)) {
 			// update countNull parameter
 			if (value.isEmpty())
@@ -39,13 +42,16 @@ public class Field2 {
 			values[idx].clear();
 			values[idx].or(value);
 			// notify change handlers
-			notifyChangeHandlers(cell);
+			notifyChangeHandlers(type.getCell(idx));
 		}
 	}
 	
 	public BitSet getValue(Cell cell) {
-		int idx = type.getCellIndex(cell);
-		return cloneBitSet(values[idx]);
+		return getValue(type.getCellIndex(cell));
+	}
+	
+	public BitSet getValue(int cellIndex) {
+		return cloneBitSet(values[cellIndex]);
 	}
 	
 	private static final BitSet cloneBitSet(BitSet bs) {
