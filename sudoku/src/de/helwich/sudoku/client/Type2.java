@@ -172,6 +172,12 @@ public class Type2 {
 		return bs;
 	}
 	
+	public BitSet getGroupCellUnion(int groupIndex) {
+		BitSet bs = new BitSet();
+		bs.or(groups[groupIndex].getCellSubSet());
+		return bs;
+	}
+	
 	public BitSet getCellGroups(BitSet cellIndices) {
 		BitSet bs = new BitSet();
 		BitSet tmp = new BitSet();
