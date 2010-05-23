@@ -15,16 +15,18 @@ import java.util.Map.Entry;
 public class FieldSolver implements CellChangeHandler {
 	
 	private final Field2 field;
-	private Map<Cell, BitSet> updates = new HashMap<Cell, BitSet>();
-	private Map<Cell, BitSet> updatesNext = new HashMap<Cell, BitSet>();
+	private final Type2 type;
+	private Map<Integer, BitSet> updates = new HashMap<Integer, BitSet>();
+	private Map<Integer, BitSet> updatesNext = new HashMap<Integer, BitSet>();
 
 	public FieldSolver(Field2 field) {
 		this.field = field;
+		type = field.getType();
 		createMap();
 		field.addChangeHandler(this);
 	}
 
-	private void addUpdatesNextMask(Cell index, BitSet mask) {
+	private void addUpdatesNextMask(int index, BitSet mask) {
 		BitSet value = getUpdatesNextValue(index);
 		mask.and(value);
 		if (!mask.equals(value))
@@ -33,32 +35,31 @@ public class FieldSolver implements CellChangeHandler {
 	
 	private void commitUpdates() {
 		// commit updatedValues to field
-		for (Entry<Cell, BitSet> entry : updates.entrySet())
+		for (Entry<Integer, BitSet> entry : updates.entrySet())
 			setFieldValue(entry.getKey(), entry.getValue());
 		updates.clear();
 		// switch updatedValues and updatedValuesNext
-		Map<Cell, BitSet> tmp = updates;
+		Map<Integer, BitSet> tmp = updates;
 		updates = updatesNext;
 		updatesNext = tmp;
 	}
 	
 	public void initializeField() {
-		for (Cell index : field.getType().getCellIterator())
-			setFieldValue(index, getFullIndex(index));
+		for (int i = type.getCellCount()-1; i >= 0; i--)
+			setFieldValue(i, getFullIndex(i));
 	}
 
 	public void detach() {
 		field.removeChangeHandler(this);
 	}
 	
-	private BitSet getFullIndex(Cell cell) {
+	private BitSet getFullIndex(int cell) {
 		BitSet cbs = getSingleCellBitSet(cell);
 		cbs = field.getType().getCellGroups(cbs);
 		return field.getType().getGroupCharIntersection(cbs);
 	}
 	
-	private BitSet getSingleCellBitSet(Cell cell) {
-		int idx = field.getType().getCellIndex(cell);
+	private BitSet getSingleCellBitSet(int idx) {
 		BitSet bs = new BitSet();
 		bs.set(idx);
 		return bs;
@@ -68,7 +69,7 @@ public class FieldSolver implements CellChangeHandler {
 
 	public synchronized void setValue(Cell index, BitSet value) {
 		assert !expectingChange;
-		addUpdatesNextMask(index, value);
+		addUpdatesNextMask(type.getCellIndex(index), value);
 		commitUpdates();
 		while (! updates.isEmpty()) {
 			calculateUpdatesNext();
@@ -141,22 +142,22 @@ public class FieldSolver implements CellChangeHandler {
 		
 	}
 	
-	private void setFieldValue(Cell cell, BitSet value) {
+	private void setFieldValue(int cell, BitSet value) {
 		assert !expectingChange;
 		expectingChange = true;
 		field.setValue(cell, value);
 	}
 	
-	private BitSet getFieldValue(Cell cell) {
+	private BitSet getFieldValue(int cell) {
 		return field.getValue(cell);
 	}
 	
-	private BitSet getUpdatesValue(Cell index) {
+	private BitSet getUpdatesValue(int index) {
 		BitSet value = updates.get(index);
 		return value == null ? getFieldValue(index) : value;
 	}
 	
-	private BitSet getUpdatesNextValue(Cell index) {
+	private BitSet getUpdatesNextValue(int index) {
 		BitSet value = updatesNext.get(index);
 		return value == null ? getUpdatesValue(index) : value;
 	}
