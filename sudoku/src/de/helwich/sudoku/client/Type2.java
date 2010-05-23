@@ -192,6 +192,14 @@ public class Type2 {
 		return bs;
 	}
 	
+	public BitSet getCellGroups(int cellIndex) {
+		BitSet bs = new BitSet();
+		for (int i = 0; i < groups.length; i++)
+			if (groups[i].getCellSubSet().get(cellIndex))
+				bs.set(i);
+		return bs;
+	}
+	
 	public BitSet getGroupCharIntersection(BitSet groupIndices) {
 		BitSet bs = new BitSet();
 		int i = groupIndices.nextSetBit(0);
