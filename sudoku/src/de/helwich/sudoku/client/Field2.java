@@ -54,7 +54,7 @@ public class Field2 {
 		return cloneBitSet(values[cellIndex]);
 	}
 	
-	private static final BitSet cloneBitSet(BitSet bs) {
+	static final BitSet cloneBitSet(BitSet bs) {
 		BitSet bs2 = new BitSet();
 		bs2.or(bs);
 		return bs2;
