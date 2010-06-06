@@ -37,11 +37,14 @@ public class FieldSolver implements CellChangeHandler {
 			valueOldClone.andNot(value);
 		else
 			valueOldClone.and(value);
-		if (!valueOld.equals(valueOldClone))
+		if (!valueOld.equals(valueOldClone)) {
+			if (m2)
+				;//System.out.println();
 			if (valueOldClone.isEmpty())
 				throw new NotSolvableException();
 			else
 				updatesNext.put(index, valueOldClone);
+		}
 	}
 	
 	private void commitUpdates() {
@@ -104,7 +107,7 @@ public class FieldSolver implements CellChangeHandler {
 			}
 		}
 		
-		int cardCells = 1;
+//		int cardCells = 1;
 		
 		Map<Integer, Map<BitSet, BitSet>>
 			map2 = new HashMap<Integer, Map<BitSet,BitSet>>(),
@@ -157,14 +160,62 @@ public class FieldSolver implements CellChangeHandler {
 				}
 			}
 			
-			cardCells ++;
+//			cardCells ++;
 			
 			map.clear();
 			map3 = map;
 			map = map2;
 			map2 = map3;
 		}
+		
+		calculate2();
 	}
+	
+	private void calculate2() throws NotSolvableException {
+		for (int i = 0; i < type.getGroupCount()-1; i++)
+			for (int j = i+1; j < type.getGroupCount(); j++) {
+				BitSet A = type.getGroupCellUnion(i);
+				BitSet B = type.getGroupCellUnion(j);
+				BitSet AintB = new BitSet();
+				AintB.or(A);
+				AintB.and(B);
+				if (! AintB.isEmpty()) {
+					BitSet AminB = new BitSet();
+					AminB.or(A);
+					AminB.andNot(B); // or andNot(AintB)
+					BitSet BminA = new BitSet();
+					BminA.or(B);
+					BminA.andNot(A);
+					// calculate values of intersection ...
+					BitSet vAintB = new BitSet();
+					for (int k = AintB.nextSetBit(0); k >= 0; k = AintB.nextSetBit(k+1))
+						vAintB.or(getUpdatesValue(k));
+					BitSet vAminB = new BitSet();
+					for (int k = AminB.nextSetBit(0); k >= 0; k = AminB.nextSetBit(k+1))
+						vAminB.or(getUpdatesValue(k));
+					BitSet vBminA = new BitSet();
+					for (int k = BminA.nextSetBit(0); k >= 0; k = BminA.nextSetBit(k+1))
+						vBminA.or(getUpdatesValue(k));
+					//
+					BitSet v = new BitSet();
+					v.or(vAintB);
+					v.andNot(vAminB);
+					m2 = true;
+					if (!v.isEmpty())
+						for (int k = BminA.nextSetBit(0); k >= 0; k = BminA.nextSetBit(k+1))
+							addUpdatesNext(k, v, true);
+					v.clear();
+					v.or(vAintB);
+					v.andNot(vBminA);
+					if (!v.isEmpty())
+						for (int k = AminB.nextSetBit(0); k >= 0; k = AminB.nextSetBit(k+1))
+							addUpdatesNext(k, v, true);
+					m2 = false;
+				}
+			}
+	}
+
+	boolean m2 = false;
 	
 	private Map<Integer, Map<BitSet, List<AGroups>>> map;
 	
