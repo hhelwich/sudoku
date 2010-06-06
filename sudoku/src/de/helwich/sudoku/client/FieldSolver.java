@@ -1,5 +1,7 @@
 package de.helwich.sudoku.client;
 
+import static de.helwich.sudoku.client.Field2.cloneBitSet;
+
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.ConcurrentModificationException;
@@ -26,11 +28,20 @@ public class FieldSolver implements CellChangeHandler {
 		field.addChangeHandler(this);
 	}
 
-	private void addUpdatesNextMask(int index, BitSet mask) {
-		BitSet value = getUpdatesNextValue(index);
-		mask.and(value);
-		if (!mask.equals(value))
-			updatesNext.put(index, mask);
+
+
+	private void addUpdatesNext(int index, BitSet value, boolean mask) throws NotSolvableException {
+		BitSet valueOld = getUpdatesNextValue(index);
+		BitSet valueOldClone = cloneBitSet(valueOld);
+		if (mask)
+			valueOldClone.andNot(value);
+		else
+			valueOldClone.and(value);
+		if (!valueOld.equals(valueOldClone))
+			if (valueOldClone.isEmpty())
+				throw new NotSolvableException();
+			else
+				updatesNext.put(index, valueOldClone);
 	}
 	
 	private void commitUpdates() {
@@ -43,33 +54,16 @@ public class FieldSolver implements CellChangeHandler {
 		updates = updatesNext;
 		updatesNext = tmp;
 	}
-	
-	public void initializeField() {
-		for (int i = type.getCellCount()-1; i >= 0; i--)
-			setFieldValue(i, getFullIndex(i));
-	}
 
 	public void detach() {
 		field.removeChangeHandler(this);
 	}
 	
-	private BitSet getFullIndex(int cell) {
-		BitSet cbs = getSingleCellBitSet(cell);
-		cbs = field.getType().getCellGroups(cbs);
-		return field.getType().getGroupCharIntersection(cbs);
-	}
-	
-	private BitSet getSingleCellBitSet(int idx) {
-		BitSet bs = new BitSet();
-		bs.set(idx);
-		return bs;
-	}
-	
 	private boolean expectingChange = false; 
 
-	public synchronized void setValue(Cell index, BitSet value) {
+	public synchronized void setValue(Cell index, BitSet value) throws NotSolvableException {
 		assert !expectingChange;
-		addUpdatesNextMask(type.getCellIndex(index), value);
+		addUpdatesNext(type.getCellIndex(index), value, false);
 		commitUpdates();
 		while (! updates.isEmpty()) {
 			calculateUpdatesNext();
@@ -77,8 +71,99 @@ public class FieldSolver implements CellChangeHandler {
 		}
 	}
 	
-	private void calculateUpdatesNext() {
-		// TODO implement
+	private void calculateUpdatesNext() throws NotSolvableException {
+		Map<Integer, Map<BitSet, BitSet>> map =
+			new HashMap<Integer, Map<BitSet,BitSet>>();
+		
+		for (Entry<Integer, BitSet> entry : updates.entrySet()) {
+			int cellIndex = entry.getKey();
+			BitSet value = entry.getValue();
+			int card = value.cardinality();
+			BitSet bs = type.getCellGroups(cellIndex);
+			if (card == 1) {
+				bs = type.getGroupCellUnion(bs);
+				bs.clear(cellIndex);
+				for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1))
+					addUpdatesNext(i, value, true);
+			} else {
+				for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+					Map<BitSet, BitSet> m = map.get(i);
+					BitSet cells = null;
+					if (m == null) {
+						m = new HashMap<BitSet, BitSet>();
+						map.put(i, m);
+					} else {
+						cells = m.get(value);
+					}
+					if (cells == null) {
+						cells = new BitSet();
+						m.put(cloneBitSet(value), cells);
+					}
+					cells.set(cellIndex);
+				}
+			}
+		}
+		
+		int cardCells = 1;
+		
+		Map<Integer, Map<BitSet, BitSet>>
+			map2 = new HashMap<Integer, Map<BitSet,BitSet>>(),
+			map3 = null;
+		
+		while (!map.isEmpty()) {
+			
+			// map : card of values > card of cells
+
+			for (Entry<Integer, Map<BitSet, BitSet>> ent : map.entrySet()) {
+				int grp = ent.getKey();
+				Map<BitSet, BitSet> map_ = ent.getValue();
+
+				for (Entry<BitSet, BitSet> entry : map_.entrySet()) {
+					BitSet values = entry.getKey();
+					BitSet cells = entry.getValue();
+					
+					int cardC = cells.cardinality();
+					int cardV = values.cardinality();
+					
+					BitSet cls = type.getGroupCellUnion(grp);
+					
+					cls.andNot(cells);
+					
+					if (cardC == cardV) {
+						for (int i = cls.nextSetBit(0); i >= 0; i = cls.nextSetBit(i + 1))
+							addUpdatesNext(i, values, true);
+					} else {
+						assert cardV > cardC;
+					
+						
+						for (int i = cls.nextSetBit(0); i >= 0; i = cls.nextSetBit(i + 1)) {
+							BitSet bs = cloneBitSet(getUpdatesValue(i));
+							bs.or(values);
+							Map<BitSet, BitSet> mp = map2.get(grp);
+							if (mp == null) {
+								mp = new HashMap<BitSet, BitSet>();
+								map2.put(grp, mp);
+							}
+							BitSet c = mp.get(bs);
+							if (c == null) {
+								c = new BitSet();
+								mp.put(bs, c);
+							}
+							c.set(i);
+							c.or(cells);
+						}
+					}
+					
+				}
+			}
+			
+			cardCells ++;
+			
+			map.clear();
+			map3 = map;
+			map = map2;
+			map2 = map3;
+		}
 	}
 	
 	private Map<Integer, Map<BitSet, List<AGroups>>> map;
@@ -148,16 +233,16 @@ public class FieldSolver implements CellChangeHandler {
 		field.setValue(cell, value);
 	}
 	
-	private BitSet getFieldValue(int cell) {
-		return field.getValue(cell);
+	private BitSet getFieldValue(int cellIndex) {
+		return field.getValue(cellIndex);
 	}
 	
-	private BitSet getUpdatesValue(int index) {
+	private BitSet getUpdatesValue(Integer index) {
 		BitSet value = updates.get(index);
 		return value == null ? getFieldValue(index) : value;
 	}
 	
-	private BitSet getUpdatesNextValue(int index) {
+	private BitSet getUpdatesNextValue(Integer index) {
 		BitSet value = updatesNext.get(index);
 		return value == null ? getUpdatesValue(index) : value;
 	}
