@@ -178,6 +178,13 @@ public class Type2 {
 		return bs;
 	}
 	
+	/**
+	 * Return the indices of all groups which contain the cells set which is
+	 * related to the given by the cell indices.
+	 * 
+	 * @param  cellIndices
+	 * @return
+	 */
 	public BitSet getCellGroups(BitSet cellIndices) {
 		BitSet bs = new BitSet();
 		BitSet tmp = new BitSet();
