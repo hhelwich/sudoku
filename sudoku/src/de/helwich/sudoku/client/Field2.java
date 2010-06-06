@@ -142,5 +142,22 @@ public class Field2 {
 			sb.append("-");
 		return sb.toString();
 	}
+
+	public void initializeField() {
+		for (int i = type.getCellCount()-1; i >= 0; i--)
+			setValue(i, getFullIndex(i));
+	}
+	
+	private BitSet getFullIndex(int cell) {
+		BitSet cbs = getSingleCellBitSet(cell);
+		cbs = type.getCellGroups(cbs);
+		return type.getGroupCharIntersection(cbs);
+	}
+	
+	private BitSet getSingleCellBitSet(int idx) {
+		BitSet bs = new BitSet();
+		bs.set(idx);
+		return bs;
+	}
 	
 }
