@@ -153,7 +153,7 @@ public class Type2 {
 		};
 	}
 	
-	public Iterable<Cell> getCellIterator() {
+	public List<Cell> getCellIterator() {
 		return Arrays.asList(cells);
 	}
 
@@ -176,6 +176,10 @@ public class Type2 {
 		BitSet bs = new BitSet();
 		bs.or(groups[groupIndex].getCellSubSet());
 		return bs;
+	}
+	
+	public BitSet getGroupCellUnionRead(int groupIndex) {
+		return groups[groupIndex].getCellSubSet();
 	}
 	
 	/**
