@@ -91,4 +91,16 @@ class Node {
 		right = null;
 	}
 	
+	public boolean isRemoved() {
+		if (up != null)
+			return up.down != this;
+		if (down != null)
+			return down.up != this;
+		if (left != null)
+			return left.right != this;
+		if (right != null)
+			return right.left != this;
+		return true;
+	}
+	
 }
