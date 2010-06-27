@@ -7,10 +7,10 @@ package de.helwich.sudoku.client.solve;
 class Node {
 
 	public Node left, right, up, down;
-	public final int hIndex;
+	public final int columnIndex;
 	
-	public Node(int hIndex) {
-		this.hIndex = hIndex;
+	public Node(int columnIndex) {
+		this.columnIndex = columnIndex;
 	}
 	
 	public Node first() {
@@ -39,6 +39,7 @@ class Node {
 	}
 	
 	public void reInsert() {
+		assert isRemoved();
 		if (up != null)
 			up.down = this;
 		if (down != null)
