@@ -58,7 +58,7 @@ public class FieldSolveMatrix {
 	private boolean STORE_REMOVED_NODES = true; 
 	private List<Node> removedNodes = STORE_REMOVED_NODES ? new ArrayList<Node>() : null;
 
-	class Node {
+	public class Node {
 		
 		public Node left, right, up, down;
 		public final int hIndex;
@@ -119,6 +119,30 @@ public class FieldSolveMatrix {
 			if (right != null)
 				return right.left != this;
 			return true;
+		}
+
+		public Node maxUp() {
+			return up == null ? this : up.maxUp();
+		}
+
+		public Node maxDown() {
+			return down == null ? this : down.maxDown();
+		}
+
+		public Node maxLeft() {
+			return left == null ? this : left.maxLeft();
+		}
+
+		public Node maxRight() {
+			return right == null ? this : right.maxRight();
+		}
+
+		public int countDown() {
+			return down == null ? 0 : down.countDown()+1;
+		}
+
+		public int countUp() {
+			return up == null ? 0 : up.countUp()+1;
 		}
 		
 	}
