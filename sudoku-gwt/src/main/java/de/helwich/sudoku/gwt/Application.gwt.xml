@@ -1,5 +1,5 @@
 <!DOCTYPE module PUBLIC "//gwt-module/" "http://google-web-toolkit.googlecode.com/svn/tags/1.6.2/distro-source/core/src/gwt-module.dtd">
-<module>
+<module rename-to='sudoku'>
 
 	<!-- Inherit the core Web Toolkit stuff. -->
 	<inherits name='com.google.gwt.user.User' />
@@ -11,8 +11,9 @@
 	<entry-point class='de.helwich.sudoku.gwt.client.Application' />
 
 	<!-- Specify the application specific style sheet. -->
-	<stylesheet src='Application.css' />
+	<stylesheet src='main.css' />
 	
 	<inherits name='de.helwich.gwt.JavaMissing' />
+	<inherits name='com.google.gwt.junit.JUnit'/>
 
 </module>
