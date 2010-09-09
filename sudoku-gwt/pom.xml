@@ -15,7 +15,7 @@
 		<!-- tell the compiler we can use 1.6 -->
 		<maven.compiler.source>1.6</maven.compiler.source>
 		<maven.compiler.target>1.6</maven.compiler.target>
-		
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
 	</properties>
 
 	<dependencies>
@@ -38,6 +38,19 @@
 			<artifactId>gwt-java-missing</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<classifier>sources</classifier>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.helwich.sudoku</groupId>
+			<artifactId>sudoku-main</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<classifier>sources</classifier>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.helwich.sudoku</groupId>
+			<artifactId>sudoku-main</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 

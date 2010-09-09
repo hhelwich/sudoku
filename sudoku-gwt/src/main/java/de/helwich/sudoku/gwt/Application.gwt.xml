@@ -15,5 +15,6 @@
 	
 	<inherits name='de.helwich.gwt.JavaMissing' />
 	<inherits name='com.google.gwt.junit.JUnit'/>
+	<inherits name='de.helwich.sudoku.sudoku-main'/>
 
 </module>
