@@ -47,7 +47,6 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>sudoku-main</artifactId>
 			<version>${sudokuVersion}</version>
-			<scope>provided</scope>
 		</dependency>
 
 		<!-- test -->
