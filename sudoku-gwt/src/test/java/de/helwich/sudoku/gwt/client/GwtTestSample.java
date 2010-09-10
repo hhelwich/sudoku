@@ -10,7 +10,7 @@ public class GwtTestSample
 
    public String getModuleName()
    {
-      return "de.helwich.sudoku.gwt.Application";
+      return "de.helwich.sudoku.gwt.sudokugwt";
    }
 
    public void testSomething()
