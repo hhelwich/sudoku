@@ -3,7 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.helwich.sudoku</groupId>
 	<artifactId>sudoku-main</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>${sudokuVersion}</version>
+	<parent>
+		<groupId>de.helwich</groupId>
+		<artifactId>sudoku</artifactId>
+		<version>${sudokuVersion}</version>
+	</parent>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>

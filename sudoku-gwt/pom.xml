@@ -5,18 +5,18 @@
 	<groupId>de.helwich.sudoku</groupId>
 	<artifactId>sudoku-gwt</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.1-SNAPSHOT</version>
-
+	<version>${sudokuVersion}</version>
+	<parent>
+		<groupId>de.helwich</groupId>
+		<artifactId>sudoku</artifactId>
+		<version>${sudokuVersion}</version>
+	</parent>
 	<properties>
-	
-		<!-- convenience to define GWT version in one place -->
 		<gwt.version>2.0.4</gwt.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<dependencies>
-
-		<!-- GWT dependencies (from central repo) -->
 		<dependency>
 			<groupId>com.google.gwt</groupId>
 			<artifactId>gwt-servlet</artifactId>
@@ -32,21 +32,21 @@
 		<dependency>
 			<groupId>de.helwich.gwt</groupId>
 			<artifactId>gwt-java-missing</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${sudokuVersion}</version>
 			<classifier>sources</classifier>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>de.helwich.sudoku</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>sudoku-main</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${sudokuVersion}</version>
 			<classifier>sources</classifier>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>de.helwich.sudoku</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>sudoku-main</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${sudokuVersion}</version>
 			<scope>provided</scope>
 		</dependency>
 

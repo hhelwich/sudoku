@@ -3,8 +3,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.helwich.gwt</groupId>
 	<artifactId>gwt-java-missing</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>${sudokuVersion}</version>
 	<packaging>jar</packaging>
+	<parent>
+		<groupId>de.helwich</groupId>
+		<artifactId>sudoku</artifactId>
+		<version>${sudokuVersion}</version>
+	</parent>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
