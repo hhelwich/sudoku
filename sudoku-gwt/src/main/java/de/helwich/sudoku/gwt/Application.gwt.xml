@@ -13,7 +13,7 @@
 	<!-- Specify the application specific style sheet. -->
 	<stylesheet src='main.css' />
 	
-	<inherits name='de.helwich.gwt.JavaMissing' />
+	<inherits name='de.helwich.gwt.GwtJavaMissing' />
 	<inherits name='com.google.gwt.junit.JUnit'/>
 	<inherits name='de.helwich.sudoku.sudoku-main'/>
 
