@@ -37,18 +37,24 @@ public class MatrixNode {
 		this.column = column;
 	}
 	
-	public void remove() {
-		up.down = down;
+	public boolean remove() {
+		if (isSingle() || isRemoved())
+			return false;
 		left.right = right;
-		down.up = up;
 		right.left = left;
+		up.down = down;
+		down.up = up;
+		return true;
 	}
 	
-	public void reInsert() {
-		up.down = this;
-		down.up = this;
+	public boolean reInsert() {
+		if (!isRemoved())
+			return false;
 		left.right = this;
 		right.left = this;
+		up.down = this;
+		down.up = this;
+		return true;
 	}
 	
 	public void setAdjacents(MatrixNode left, MatrixNode right,
@@ -61,6 +67,54 @@ public class MatrixNode {
 		this.right = right;
 		this.up = up;
 		this.down = down;
+	}
+	
+	/**
+	 * Returns <code>true</code> if the node had adjacent nodes
+	 * ({@link #isSingle()} returned <code>false</code>) and was removed before
+	 * by {@link #remove()}.
+	 * {@link #isRemoved()} <code>== true</code> implicates {@link #isSingle()}
+	 * <code>== false</code> 
+	 * 
+	 * @return <code>true</code> if the node had adjacent nodes and was removed
+	 *         before by {@link #remove()}.
+	 */
+	public boolean isRemoved() {
+		if (left.right != this) { // node removed before; node row count unknown
+			assert right.left != this;
+			assert (up.down == this) == (down.up == this);
+			return true;
+		} else if (up.down != this) { // node removed before and only node in row
+			assert right.left == this;
+			assert down.up != this;
+			return true;
+		} else { // not removed
+			assert right.left == this;
+			assert down.up == this;
+			return false;
+		}
+	}
+	
+	/**
+	 * Returns <code>true</code> if the node has no adjacent nodes.
+	 * If <code>true</code> is returned, the operation {@link #isRemoved()}
+	 * will return <code>false</code>.
+	 * 
+	 * @return <code>true</code> if the node has no adjacent nodes
+	 */
+	public boolean isSingle() {
+		if (left == this) { // single in row
+			assert right == this;
+			if (up == this) { // single in row and column
+				assert down == this;
+				return true;
+			} else // single in row but not in column
+				assert down != this;
+		} else { // not single in row
+			assert (up == this) == (down == this);
+			assert right != this;
+		}
+		return false;
 	}
 	
 	/**
