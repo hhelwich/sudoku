@@ -74,7 +74,8 @@ public class MatrixNode {
 	 * ({@link #isSingle()} returned <code>false</code>) and was removed before
 	 * by {@link #remove()}.
 	 * {@link #isRemoved()} <code>== true</code> implicates {@link #isSingle()}
-	 * <code>== false</code> 
+	 * <code>== false</code> or in other words it is never possible that
+	 * {@link #isRemoved()} and {@link #isSingle()} are both <code>true</code>.
 	 * 
 	 * @return <code>true</code> if the node had adjacent nodes and was removed
 	 *         before by {@link #remove()}.
@@ -115,21 +116,6 @@ public class MatrixNode {
 			assert right != this;
 		}
 		return false;
-	}
-	
-	/**
-	 * Returns <code>true</code> if the current node is the leftmost node in
-	 * its row.
-	 * 
-	 * @return <code>true</code> if the current node is the leftmost node in
-	 *         its row
-	 */
-	public boolean isLeftmost() {
-		return left.column >= column;
-	}
-
-	public boolean isRowLoner() {
-		return left == this;
 	}
 	
 }

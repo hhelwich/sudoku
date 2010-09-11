@@ -149,34 +149,4 @@ public class MatrixNodeTest {
 		assertEquals(plus, pd.up);
 	}
 
-	@Test
-	public void testIsLeftmost() {
-		assertTrue(min.isLeftmost());
-		min.remove();
-		assertTrue(min.isLeftmost());
-		min.reInsert();
-		assertTrue(min.isLeftmost());
-		//
-		assertTrue(pl.isLeftmost());
-		assertFalse(pr.isLeftmost());
-		assertTrue(pu.isLeftmost());
-		assertTrue(pd.isLeftmost());
-		assertFalse(plus.isLeftmost());
-	}
-
-	@Test
-	public void testIsRowLoner() {
-		assertTrue(min.isRowLoner());
-		min.remove();
-		assertTrue(min.isRowLoner());
-		min.reInsert();
-		assertTrue(min.isRowLoner());
-		//
-		assertFalse(pl.isRowLoner());
-		assertFalse(pr.isRowLoner());
-		assertTrue(pu.isRowLoner());
-		assertTrue(pd.isRowLoner());
-		assertFalse(plus.isRowLoner());
-	}
-
 }
