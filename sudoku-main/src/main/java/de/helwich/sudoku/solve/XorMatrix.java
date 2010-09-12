@@ -35,14 +35,8 @@ public class XorMatrix {
 	}
 	
 	public int removeRow(int row) {
-		MatrixNode first = firstColumn[row];
-		if (first != null) {
-			MatrixNode node = first;
-			do {
-				removeNode(node);
-				node = node.right;
-			} while (node != first);
-		}
+		for (MatrixNode node : new MatrixNodeRowIterable(firstColumn[row]))
+			removeNode(node);
 		return removedNodes.size();
 	}
 	
