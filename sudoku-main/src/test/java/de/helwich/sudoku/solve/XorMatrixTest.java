@@ -217,35 +217,37 @@ public class XorMatrixTest {
 		}
 	}
 
-}
-
-
-
-
-
-final class TestMatrixChangeHandler implements XorMatrixChangeHandler {
-
-	private final int[] expectedRows;
-	private final boolean[] removedRows;
 	
-	public TestMatrixChangeHandler(int[] expectedRows) {
-		this.expectedRows = expectedRows;
-		removedRows = new boolean[expectedRows.length];
-	}
-	
-	@Override
-	public void onRemoveRow(int row) {
-		int rowIdx = Arrays.binarySearch(expectedRows, row);
-		assertTrue("row "+row+" should not be removed", rowIdx >= 0);
-		removedRows[rowIdx] = true;
-	}
-	
-	public void finish() {
-		int rowIdx = 0;
-		for (boolean removedRow : removedRows) {
-			assertTrue("row "+expectedRows[rowIdx]+" should have been removed", removedRow);
-			rowIdx++;
+
+
+	final private class TestMatrixChangeHandler implements XorMatrixChangeHandler {
+
+		private final int[] expectedRows;
+		private final boolean[] removedRows;
+		
+		public TestMatrixChangeHandler(int[] expectedRows) {
+			this.expectedRows = expectedRows;
+			removedRows = new boolean[expectedRows.length];
 		}
+		
+		@Override
+		public void onRemoveRow(int row) {
+			int rowIdx = Arrays.binarySearch(expectedRows, row);
+			assertTrue("row "+row+" should not be removed", rowIdx >= 0);
+			removedRows[rowIdx] = true;
+		}
+		
+		public void finish() {
+			int rowIdx = 0;
+			for (boolean removedRow : removedRows) {
+				assertTrue("row "+expectedRows[rowIdx]+" should have been removed", removedRow);
+				rowIdx++;
+			}
+		}
+		
 	}
 	
 }
+
+
+
