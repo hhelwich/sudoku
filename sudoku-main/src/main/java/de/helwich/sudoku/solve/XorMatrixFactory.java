@@ -56,7 +56,7 @@ public class XorMatrixFactory {
 		currentColumn++;
 	}
 	
-	private XorMatrix createXorMatrix_() {
+	public XorMatrix createXorMatrix() {
 		ensureInitialized();
 		// connect first row elements with last row elements
 		for (int i = 0; i < height; i++) {
@@ -68,11 +68,7 @@ public class XorMatrixFactory {
 			}
 		}
 		// create matrix
-		return new XorMatrix(columnFirst);
-	}
-	
-	public XorMatrix createXorMatrix() {
-		XorMatrix matrix = createXorMatrix_();
+		XorMatrix matrix = new XorMatrix(columnFirst);
 		// free for garbage collector
 		columnFirst = null;
 		columnLast = null;
@@ -81,7 +77,8 @@ public class XorMatrixFactory {
 
 	@Override
 	public String toString() {
-		return createXorMatrix_().toString();
+		ensureInitialized();
+		return new XorMatrix(columnFirst).toString();
 	}
 	
 }
