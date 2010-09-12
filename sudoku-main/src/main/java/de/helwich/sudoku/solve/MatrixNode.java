@@ -117,5 +117,10 @@ public class MatrixNode {
 		}
 		return false;
 	}
+
+	@Override
+	public String toString() {
+		return "(" + row + "," + column + ")";
+	}
 	
 }
