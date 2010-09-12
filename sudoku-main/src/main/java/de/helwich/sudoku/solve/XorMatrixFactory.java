@@ -56,13 +56,32 @@ public class XorMatrixFactory {
 		currentColumn++;
 	}
 	
-	public XorMatrix createXorMatrix() {
+	private XorMatrix createXorMatrix_() {
 		ensureInitialized();
-		XorMatrix matrix = new XorMatrix(columnFirst);
+		// connect first row elements with last row elements
+		for (int i = 0; i < height; i++) {
+			MatrixNode first = columnFirst[i];
+			MatrixNode last = columnLast[i];
+			if (first != null) {
+				first.left = last;
+				last.right = first;
+			}
+		}
+		// create matrix
+		return new XorMatrix(columnFirst);
+	}
+	
+	public XorMatrix createXorMatrix() {
+		XorMatrix matrix = createXorMatrix_();
 		// free for garbage collector
 		columnFirst = null;
 		columnLast = null;
 		return matrix;
+	}
+
+	@Override
+	public String toString() {
+		return createXorMatrix_().toString();
 	}
 	
 }
