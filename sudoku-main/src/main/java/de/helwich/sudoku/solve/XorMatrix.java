@@ -19,6 +19,7 @@ public class XorMatrix {
 	 */
 	XorMatrix(MatrixNode[] firstColumn) {
 		this.firstColumn = firstColumn;
+		removedNodes = new LinkedList<MatrixNode>();
 	}
 	
 	public void addChangeHandler(XorMatrixChangeHandler handler) {
@@ -34,13 +35,13 @@ public class XorMatrix {
 	}
 	
 	public int removeRow(int row) {
-		MatrixNode node = firstColumn[row];
-		if (node != null) {
+		MatrixNode first = firstColumn[row];
+		if (first != null) {
+			MatrixNode node = first;
 			do {
 				removeNode(node);
 				node = node.right;
-			} while (node != null);
-			firstColumn[row] = null;
+			} while (node != first);
 		}
 		return removedNodes.size();
 	}
@@ -52,10 +53,15 @@ public class XorMatrix {
 		// if node is a single node we do not know if it is removed before
 		// if node is an element of first column array => adapt array
 		if (firstColumn[node.row] == node)
-			firstColumn[node.row] = node.right;
+			if (node.right == node)
+				firstColumn[node.row] = null;
+			else
+				firstColumn[node.row] = node.right;
 	}
 	
 	public void restoreNodes(int matrixStateId) {
+		if (matrixStateId < 0)
+			throw new IllegalArgumentException("argument must not be negative");
 		// calculate the number of node which must be removed
 		int removeCount = removedNodes.size() - matrixStateId;
 		// remove removeCount nodes
@@ -67,6 +73,25 @@ public class XorMatrix {
 			if (firstColumn[node.row] == node.right)
 				firstColumn[node.row] = node;
 		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		int row = 0;
+		for (MatrixNode first : firstColumn) {
+			sb.append(row).append(" |");
+			int column = 0;
+			for (MatrixNode node : new MatrixNodeRowIterable(first)) {
+				for (; column < node.column; column++)
+					sb.append(' ');
+				sb.append('X');
+				column++;
+			}
+			sb.append('\n');
+			row++;
+		}
+		return sb.toString();
 	}
 	
 }
