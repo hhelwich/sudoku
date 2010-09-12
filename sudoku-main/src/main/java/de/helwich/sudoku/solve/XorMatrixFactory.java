@@ -6,20 +6,26 @@ package de.helwich.sudoku.solve;
  */
 public class XorMatrixFactory {
 
-	private boolean matrixCreated = false;
-
-	private MatrixNode[] columnFirst;
-	private MatrixNode[] columnLast; // used in initialization
-	private int currentColumn = 0; // used in initialization
+	private final int height;
+	
+	private MatrixNode[] columnFirst; // used to create the matrix
+	private MatrixNode[] columnLast;
+	private int currentColumn;
 	
 	public XorMatrixFactory(int height) {
-		columnFirst = new MatrixNode[height];
-		columnLast = new MatrixNode[height];
+		this.height = height;
+	}
+	
+	private void ensureInitialized() {
+		if (columnFirst == null) {
+			columnFirst = new MatrixNode[height];
+			columnLast = new MatrixNode[height];
+			currentColumn = 0;
+		}
 	}
 	
 	public void addXorColumn(int... rows) {
-		if (matrixCreated)
-			throw new RuntimeException("matrix is already created");
+		ensureInitialized();
 		MatrixNode up = null;
 		for (int row : rows) {
 			// create new node
@@ -51,10 +57,8 @@ public class XorMatrixFactory {
 	}
 	
 	public XorMatrix createXorMatrix() {
-		if (matrixCreated)
-			throw new RuntimeException("matrix is already created");
+		ensureInitialized();
 		XorMatrix matrix = new XorMatrix(columnFirst);
-		matrixCreated = true;
 		// free for garbage collector
 		columnFirst = null;
 		columnLast = null;
