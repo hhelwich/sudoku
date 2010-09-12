@@ -74,12 +74,12 @@ public class XorMatrix {
 		StringBuilder sb = new StringBuilder();
 		int row = 0;
 		for (MatrixNode first : firstColumn) {
-			sb.append(row).append(" |");
+			sb.append(row).append("  |");
 			int column = 0;
 			for (MatrixNode node : new MatrixNodeRowIterable(first)) {
 				for (; column < node.column; column++)
 					sb.append(' ');
-				sb.append('X');
+				sb.append(" X");
 				column++;
 			}
 			sb.append('\n');
