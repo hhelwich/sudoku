@@ -72,36 +72,35 @@ public class XorMatrixTest {
 	}
 
 	@Test
-	@Ignore
 	public void testMain() {
-		int height = 8; // cell count
-		int width = 4; // cell set count
+		int height = 2; // cell count
+		int width = 2; // cell set count
+		int testCount = 10000;
 
 		assert height > 0 && height <= 30 && width > 0;
 		
-		int[] xorMatrix = createRandomXorMatrix(height, width);
-		printXorMatrix(xorMatrix, height);
-		List<Integer> dispensableRows = getDispensableRows(xorMatrix, height);
-		System.out.println("dispensable rows: " + dispensableRows);
-		removeRows(xorMatrix, dispensableRows); // minimize matrix
-		printXorMatrix(xorMatrix, height);
-		XorMatrix matrix = createXorMatrix(xorMatrix, height);
-		System.out.println(matrix);
-		List<Integer> rows = getNotEmptyRows(xorMatrix, height);
-		while (rows.size() > 0) {
-			int rowToDelete = rows.get(random.nextInt(rows.size()));
-			List<Integer> rowAsList = new LinkedList<Integer>();
-			rowAsList.add(rowToDelete);
-			removeRows(xorMatrix, rowAsList);
-			List<Integer> drows = getDispensableRows(xorMatrix, height);
-			System.out.println("remove row "+rowToDelete+" => dispensable rows "+drows);
-			removeRows(xorMatrix, drows);
-			printXorMatrix(xorMatrix, height);
-			removeRow(matrix, rowToDelete, convIntListToArray(drows));
-			rows = getNotEmptyRows(xorMatrix, height);
+		for (int i = 0; i < testCount; i++) {
+			int[] xorMatrix = createRandomXorMatrix(height, width);
+			List<Integer> dispensableRows = getDispensableRows(xorMatrix, height);
+			System.out.println("dispensable rows: " + dispensableRows);
+			removeRows(xorMatrix, dispensableRows); // minimize matrix
+			XorMatrix matrix = createXorMatrix(xorMatrix, height);
+			System.out.println(matrix);
+			List<Integer> rows = getNotEmptyRows(xorMatrix, height);
+			while (rows.size() > 0) {
+				int rowToDelete = rows.get(random.nextInt(rows.size()));
+				List<Integer> rowAsList = new LinkedList<Integer>();
+				rowAsList.add(rowToDelete);
+				removeRows(xorMatrix, rowAsList);
+				List<Integer> drows = getDispensableRows(xorMatrix, height);
+				System.out.println("remove row "+rowToDelete+" => dispensable rows "+drows);
+				removeRows(xorMatrix, drows);
+				removeRow(matrix, rowToDelete, convIntListToArray(drows));
+				System.out.println(matrix);
+				rows = getNotEmptyRows(xorMatrix, height);
+			}
 		}
 	}
-	
 
 
 	private static List<Integer> getNotEmptyRows(int[] xorMatrix, int height) {
@@ -113,7 +112,7 @@ public class XorMatrixTest {
 		return rows;
 	}
 
-	private XorMatrix createXorMatrix(int[] xorMatrix, int height) {
+	private static XorMatrix createXorMatrix(int[] xorMatrix, int height) {
 		XorMatrixFactory factory = new XorMatrixFactory(height);
 		Set<Integer> usedColumns = new HashSet<Integer>();
 		List<Integer> rows = new LinkedList<Integer>();
