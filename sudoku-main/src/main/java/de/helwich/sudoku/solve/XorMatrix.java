@@ -82,7 +82,7 @@ public class XorMatrix {
 			int column = 0;
 			for (MatrixNode node : new MatrixNodeRowIterable(first)) {
 				for (; column < node.column; column++)
-					sb.append(' ');
+					sb.append("  ");
 				sb.append(" X");
 				column++;
 			}
