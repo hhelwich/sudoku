@@ -29,6 +29,11 @@ public class MatrixNode {
 	public final int row, column;
 	
 	/**
+	 * Initializes the immutable position of the matrix node.
+	 * The adjacent pointers {@link #left}, {@link #right}, {@link #up} and
+	 * {@link #down} need to be set to a non <code>null</code> value afterwards
+	 * before any of the operations of this class are called.
+	 * 
 	 * @param  row
 	 * @param  column
 	 */
@@ -37,6 +42,9 @@ public class MatrixNode {
 		this.column = column;
 	}
 	
+	/**
+	 * @return <code>true</code> if the node was removed from the matrix.
+	 */
 	public boolean remove() {
 		if (isSingle() || isRemoved())
 			return false;
@@ -47,6 +55,9 @@ public class MatrixNode {
 		return true;
 	}
 	
+	/**
+	 * @return <code>true</code> if the node was reinserted in the matrix.
+	 */
 	public boolean reInsert() {
 		if (!isRemoved())
 			return false;
