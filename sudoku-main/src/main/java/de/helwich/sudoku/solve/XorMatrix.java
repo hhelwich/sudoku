@@ -34,29 +34,60 @@ public class XorMatrix {
 		return false;
 	}
 	
+	private void notifyChangeHandler(int row) {
+		if (handlers != null)
+			for (XorMatrixChangeHandler handler : handlers)
+				handler.onRemoveRow(row);
+	}
+	
 	public int removeRow(int row) {
 		MatrixNode node = firstColumn[row];
 		while (node.right != node) {
-			removeNode(node);
+			removeNode(node, true);
 			node = node.right;
 		} 
-		removeNode(node);
+		removeNode(node, true);
 		return removedNodes.size();
 	}
 	
-	private void removeNode(MatrixNode node) {
-		if (node.remove())
+	private void removeNode(MatrixNode node, boolean calculateEffect) {
+		if (node.remove()) {
 			removedNodes.add(node);
+			if (calculateEffect)
+				calculateEffect(node);
+		}
 		
 		// if node is a single node we do not know if it is removed before
 		// if node is an element of first column array => adapt array
 		if (firstColumn[node.row] == node)
-			if (node.right == node)
+			if (node.right == node) { // single node in the row
 				firstColumn[node.row] = null;
-			else
+				notifyChangeHandler(node.row);
+			} else
 				firstColumn[node.row] = node.right;
 	}
 	
+	/**
+	 * @param  node
+	 *         node which is removed before
+	 */
+	private void calculateEffect(MatrixNode node) {
+		if (node.up != node && node.down == node.up) { // only one node is left in the column
+			// remove all columns which are connected with the single node which
+			// is left in the current column
+			node = node.up;
+			while (node != node.right)
+				removeColumn(node.right);
+		}
+	}
+
+	private void removeColumn(MatrixNode node) {
+		while (node != node.up)
+			removeNode(node.up, false);
+		removeNode(node, false);
+		
+	}
+
 	public void restoreNodes(int matrixStateId) {
 		if (matrixStateId < 0)
 			throw new IllegalArgumentException("argument must not be negative");

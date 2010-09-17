@@ -3,7 +3,9 @@ package de.helwich.sudoku.solve;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -64,7 +66,7 @@ public class XorMatrixTest {
 	
 	private void removeRow(XorMatrix matrix, int row, final int... expectedRows) {
 		Arrays.sort(expectedRows);
-		TestMatrixChangeHandler handler = new TestMatrixChangeHandler(expectedRows);
+		TestMatrixChangeHandler handler = new TestMatrixChangeHandler(row, expectedRows);
 		matrix.addChangeHandler(handler);
 		matrix.removeRow(row);
 		matrix.removeChangeHandler(handler);
@@ -73,9 +75,9 @@ public class XorMatrixTest {
 
 	@Test
 	public void testMain() {
-		int height = 2; // cell count
+		int height = 3; // cell count
 		int width = 2; // cell set count
-		int testCount = 10000;
+		int testCount = 100000;
 
 		assert height > 0 && height <= 30 && width > 0;
 		
@@ -98,6 +100,7 @@ public class XorMatrixTest {
 				removeRow(matrix, rowToDelete, convIntListToArray(drows));
 				System.out.println(matrix);
 				rows = getNotEmptyRows(xorMatrix, height);
+				break;
 			}
 		}
 	}
@@ -136,6 +139,13 @@ public class XorMatrixTest {
 		for (int i = 0; i < array.length; i++)
 			array[i] = list.get(i);
 		return array;
+	}
+	
+	private static List<Integer> convIntArrayToList(int[] array) {
+		List<Integer> list = new ArrayList<Integer>(array.length+1);
+		for (int i = 0; i < array.length; i++)
+			list.add(array[i]);
+		return list;
 	}
 
 	private void removeRows(int[] xorMatrix, List<Integer> rows) {
@@ -220,18 +230,20 @@ public class XorMatrixTest {
 
 
 	final private class TestMatrixChangeHandler implements XorMatrixChangeHandler {
-
-		private final int[] expectedRows;
+		
+		private final List<Integer> expectedRows;
 		private final boolean[] removedRows;
 		
-		public TestMatrixChangeHandler(int[] expectedRows) {
-			this.expectedRows = expectedRows;
-			removedRows = new boolean[expectedRows.length];
+		public TestMatrixChangeHandler(int row, int[] expectedRows) {
+			this.expectedRows = convIntArrayToList(expectedRows);
+			this.expectedRows.add(row);
+			Collections.sort(this.expectedRows);
+			removedRows = new boolean[this.expectedRows.size()];
 		}
 		
 		@Override
 		public void onRemoveRow(int row) {
-			int rowIdx = Arrays.binarySearch(expectedRows, row);
+			int rowIdx = Collections.binarySearch(expectedRows, row);
 			assertTrue("row "+row+" should not be removed", rowIdx >= 0);
 			removedRows[rowIdx] = true;
 		}
@@ -239,7 +251,7 @@ public class XorMatrixTest {
 		public void finish() {
 			int rowIdx = 0;
 			for (boolean removedRow : removedRows) {
-				assertTrue("row "+expectedRows[rowIdx]+" should have been removed", removedRow);
+				assertTrue("row "+expectedRows.get(rowIdx)+" should have been removed", removedRow);
 				rowIdx++;
 			}
 		}
