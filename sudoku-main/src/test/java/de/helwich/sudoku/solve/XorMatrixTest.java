@@ -75,7 +75,7 @@ public class XorMatrixTest {
 
 	@Test
 	public void testMain() {
-		int height = 3; // cell count
+		int height = 4; // cell count
 		int width = 2; // cell set count
 		int testCount = 100000;
 

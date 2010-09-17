@@ -1,5 +1,6 @@
 package de.helwich.sudoku.solve;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -43,20 +44,16 @@ public class XorMatrix {
 	public int removeRow(int row) {
 		MatrixNode node = firstColumn[row];
 		while (node.right != node) {
-			removeNode(node, true);
+			removeNodeAndEffect(node);
 			node = node.right;
 		} 
-		removeNode(node, true);
+		removeNodeAndEffect(node);
 		return removedNodes.size();
 	}
 	
-	private void removeNode(MatrixNode node, boolean calculateEffect) {
-		if (node.remove()) {
+	private void removeNode(MatrixNode node) {
+		if (node.remove())
 			removedNodes.add(node);
-			if (calculateEffect)
-				calculateEffect(node);
-		}
-		
 		// if node is a single node we do not know if it is removed before
 		// if node is an element of first column array => adapt array
 		if (firstColumn[node.row] == node)
@@ -71,20 +68,50 @@ public class XorMatrix {
 	 * @param  node
 	 *         node which is removed before
 	 */
-	private void calculateEffect(MatrixNode node) {
-		if (node.up != node && node.down == node.up) { // only one node is left in the column
-			// remove all columns which are connected with the single node which
-			// is left in the current column
-			node = node.up;
-			while (node != node.right)
-				removeColumn(node.right);
+	private void removeNodeAndEffect(MatrixNode node) {
+		// add all remaining nodes of the column to a column list
+		int col = node.column;
+		List<MatrixNode> column = new ArrayList<MatrixNode>(firstColumn.length); //TODO get from pool
+		MatrixNode currentNode = node; //TODO columns which have a node in this row can be ignored due to minimal constraint
+		int maxcol = Integer.MIN_VALUE;
+		while (currentNode.up != node) {
+			currentNode = currentNode.up;
+			MatrixNode first = firstColumn[currentNode.row];
+			column.add(first);
+			maxcol = Math.max(maxcol, first.column);
+		}
+		
+		removeNode(node);
+		
+		//
+		int height = column.size();
+		if (height == 0)
+			return;
+		outerloop:
+		while (true) {
+			for (int i = 0; i < height; i++) {
+				MatrixNode cnode = column.get(i);
+				while (cnode.column < maxcol) {
+					if (cnode == cnode.right || cnode.right.column < cnode.column)
+						break outerloop;
+					cnode = cnode.right;
+					column.set(i, cnode);
+				}
+				if (cnode.column > maxcol) {
+					maxcol = cnode.column;
+					continue outerloop;
+				}
+			}
+			if (maxcol != col)
+				removeColumn(column.get(0));
+			maxcol++;
 		}
 	}
 
 	private void removeColumn(MatrixNode node) {
 		while (node != node.up)
-			removeNode(node.up, false);
-		removeNode(node, false);
+			removeNode(node.up);
+		removeNode(node);
 		
 	}
 
