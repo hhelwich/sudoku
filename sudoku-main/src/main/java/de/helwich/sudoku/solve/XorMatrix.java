@@ -111,7 +111,7 @@ public class XorMatrix {
 
 	private void removeRow(MatrixNode node) {
 		for (removeNode(node); node != node.right; node = node.right)
-			removeNode(node.right);
+			removeNodeAndEffect(node.right);
 	}
 
 	// remove all given column nodes. If the column does have more nodes which
