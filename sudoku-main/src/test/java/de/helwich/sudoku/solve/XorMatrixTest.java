@@ -64,6 +64,16 @@ public class XorMatrixTest {
 		// now rows 2,4,6,9,11,13 should be removed by the matrix
 	}
 	
+	@Test
+	public void testSingle() {
+		XorMatrixFactory factory = new XorMatrixFactory(4);
+		factory.addXorColumn(0,3);
+		factory.addXorColumn(1,3);
+		XorMatrix matrix = factory.createXorMatrix();
+		System.out.println(matrix);
+		removeRow(matrix, 1,  0);
+	}
+	
 	private void removeRow(XorMatrix matrix, int row, final int... expectedRows) {
 		Arrays.sort(expectedRows);
 		TestMatrixChangeHandler handler = new TestMatrixChangeHandler(row, expectedRows);
@@ -76,7 +86,7 @@ public class XorMatrixTest {
 	@Test
 	public void testMain() {
 		int height = 4; // cell count
-		int width = 2; // cell set count
+		int width = 3; // cell set count
 		int testCount = 100000;
 
 		assert height > 0 && height <= 30 && width > 0;

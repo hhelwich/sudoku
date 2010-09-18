@@ -69,6 +69,18 @@ public class XorMatrix {
 	 *         node which is removed before
 	 */
 	private void removeNodeAndEffect(MatrixNode node) {
+		
+		if (node.up != node && node.down == node.up) { // only one node is left in the column
+			// remove all columns which are connected with the single node which
+			removeNode(node);
+			// is left in the current column
+			node = node.up;//is 1
+			while (node != node.right)
+				removeColumnAndRows(node.right);
+			return;
+		}
+		
+		
 		// add all remaining nodes of the column to a column list
 		int col = node.column;
 		List<MatrixNode> column = new ArrayList<MatrixNode>(firstColumn.length); //TODO get from pool
@@ -106,6 +118,15 @@ public class XorMatrix {
 				removeColumn(column.get(0));
 			maxcol++;
 		}
+	}
+
+	private void removeColumnAndRows(MatrixNode node) {
+		while (node != node.up) {
+			while (node.up != node.up.right)
+				removeNode(node.up.right);
+			removeNode(node.up);
+		}
+		removeNode(node);
 	}
 
 	private void removeColumn(MatrixNode node) {
