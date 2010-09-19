@@ -67,13 +67,14 @@ public class XorMatrixTest {
 	@Test
 	public void testSingle() {
 		XorMatrixFactory factory = new XorMatrixFactory(5);
-		factory.addXorColumn(2,3);
 		factory.addXorColumn(2,4);
-		factory.addXorColumn(0,1);
-		factory.addXorColumn(0,3);
+		factory.addXorColumn(0,2);
+		factory.addXorColumn(2,3);
+		factory.addXorColumn(1,4);
+		factory.addXorColumn(1,3);
 		XorMatrix matrix = factory.createXorMatrix();
 		System.out.println(matrix);
-		removeRow(matrix, 1,  3,4);
+		removeRow(matrix, 2, 1);
 	}
 	
 	private void removeRow(XorMatrix matrix, int row, final int... expectedRows) {
@@ -88,7 +89,7 @@ public class XorMatrixTest {
 	@Test
 	public void testMain() {
 		int height = 5; // cell count
-		int width = 4; // cell set count
+		int width = 5; // cell set count
 		int testCount = 100000;
 
 		assert height > 0 && height <= 30 && width > 0;
