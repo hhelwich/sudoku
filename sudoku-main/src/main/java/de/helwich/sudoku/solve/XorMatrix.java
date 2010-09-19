@@ -43,11 +43,13 @@ public class XorMatrix {
 	
 	public int removeRow(int row) {
 		MatrixNode node = firstColumn[row];
-		while (node.right != node) {
+		if (node != null) {
+			while (node.right != node) {
+				removeNodeAndEffect(node);
+				node = node.right;
+			} 
 			removeNodeAndEffect(node);
-			node = node.right;
-		} 
-		removeNodeAndEffect(node);
+		}
 		return removedNodes.size();
 	}
 	
@@ -69,6 +71,7 @@ public class XorMatrix {
 	 *         node which is removed before
 	 */
 	private void removeNodeAndEffect(MatrixNode node) {
+		List<Integer> removeRowsLater = new ArrayList<Integer>(); //TODO get from pool
 		
 		// add all remaining nodes of the column to a column list
 		int col = node.column;
@@ -104,34 +107,36 @@ public class XorMatrix {
 				}
 			}
 			if (maxcol != col)
-				removeColumn(column);
+				removeColumn(column, removeRowsLater);
 			maxcol++;
 		}
+		
+		for (int i = removeRowsLater.size()-1; i >= 0; i--)
+			removeRow(removeRowsLater.remove(i));
 	}
 
-	private void removeRow(MatrixNode node) {
-		for (removeNode(node); node != node.right; node = node.right)
-			removeNodeAndEffect(node.right);
+	private void removeRow(MatrixNode node, List<Integer> removeRowsLater) {
+		removeNode(node);
+		removeRowsLater.add(node.row);
 	}
 
 	// remove all given column nodes. If the column does have more nodes which
 	// are not in the argument list, remove the row for each of this nodes.
-	private void removeColumn(List<MatrixNode> columNodes) {
+	private void removeColumn(List<MatrixNode> columNodes, List<Integer> removeRowsLater) {
 		for (int i = columNodes.size()-1; i>= 0; i--)
 			removeNode(columNodes.get(i));
 		MatrixNode node = columNodes.get(0); // last removed node
 		if (node != node.up)
-			removeRowsOfColumn(node.up);
-		
+			removeRowsOfColumn(node.up, removeRowsLater);
 	}
 
 	
 	/**
 	 * Remove all rows of the column of the given node.
 	 */
-	private void removeRowsOfColumn(MatrixNode node) {
-		for (removeRow(node); node != node.up; node = node.up)
-			removeRow(node.up);
+	private void removeRowsOfColumn(MatrixNode node, List<Integer> removeRowsLater) {
+		for (removeRow(node, removeRowsLater); node != node.up; node = node.up)
+			removeRow(node.up, removeRowsLater);
 	}
 
 	public void restoreNodes(int matrixStateId) {
