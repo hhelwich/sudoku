@@ -44,11 +44,14 @@ public class XorMatrix {
 	public int removeRow(int row) {
 		MatrixNode node = firstColumn[row];
 		if (node != null) {
+			List<Integer> removeRowsLater = new ArrayList<Integer>(); //TODO get from pool
 			while (node.right != node) {
-				removeNodeAndEffect(node);
+				removeNodeAndEffect(node, removeRowsLater);
 				node = node.right;
 			} 
-			removeNodeAndEffect(node);
+			removeNodeAndEffect(node,removeRowsLater);
+			for (int i = removeRowsLater.size()-1; i >= 0; i--)
+				removeRow(removeRowsLater.remove(i));
 		}
 		return removedNodes.size();
 	}
@@ -70,8 +73,7 @@ public class XorMatrix {
 	 * @param  node
 	 *         node which is removed before
 	 */
-	private void removeNodeAndEffect(MatrixNode node) {
-		List<Integer> removeRowsLater = new ArrayList<Integer>(); //TODO get from pool
+	private void removeNodeAndEffect(MatrixNode node, List<Integer> removeRowsLater) {
 		
 		// add all remaining nodes of the column to a column list
 		int col = node.column;
@@ -111,8 +113,6 @@ public class XorMatrix {
 			maxcol++;
 		}
 		
-		for (int i = removeRowsLater.size()-1; i >= 0; i--)
-			removeRow(removeRowsLater.remove(i));
 	}
 
 	private void removeRow(MatrixNode node, List<Integer> removeRowsLater) {
