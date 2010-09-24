@@ -1,25 +1,30 @@
 package de.helwich.sudoku.solve;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Hendrik Helwich
  *
  */
 public class XorMatrixFactory {
 
-	private final int height;
-	
-	private MatrixNode[] columnFirst; // used to create the matrix
-	private MatrixNode[] columnLast;
+
+	/* array of the first node in each row  */
+	private Map<Integer, MatrixNode> firstRowNodes; // used to create the matrix
+	/* array of the first node in each column  */
+	private Map<Integer, MatrixNode> firstColumnNodes; // used to create the matrix
+	private Map<Integer, MatrixNode> lastRowNode;
 	private int currentColumn;
 	
-	public XorMatrixFactory(int height) {
-		this.height = height;
+	public XorMatrixFactory() {
 	}
 	
 	private void ensureInitialized() {
-		if (columnFirst == null) {
-			columnFirst = new MatrixNode[height];
-			columnLast = new MatrixNode[height];
+		if (firstRowNodes == null) {
+			firstRowNodes = new HashMap<Integer, MatrixNode>();
+			firstColumnNodes = new HashMap<Integer, MatrixNode>();
+			lastRowNode = new HashMap<Integer, MatrixNode>();
 			currentColumn = 0;
 		}
 	}
@@ -34,22 +39,23 @@ public class XorMatrixFactory {
 			if (up != null) { // not first iteration step
 				up.down = node;
 				node.up = up;
-			}
+			} else // first iteration step
+				firstColumnNodes.put(currentColumn, node);
 			up = node;
 			// connect with the previous node in the current column
-			if (columnFirst[row] == null) { // row is empty
-				columnFirst[row] = node;
-				columnLast[row] = node;
+			if (firstRowNodes.get(row) == null) { // row is empty
+				firstRowNodes.put(row, node);
+				lastRowNode.put(row, node);
 			} else {
-				columnLast[row].right = node;
-				node.left = columnLast[row];
-				columnLast[row] = node;
+				lastRowNode.get(row).right = node;
+				node.left = lastRowNode.get(row);
+				lastRowNode.put(row, node);
 			}
 			
 		}
 		// connect top and bottom element of the column
-		MatrixNode top = columnLast[rows[0]];
-		MatrixNode bottom = columnLast[rows[rows.length-1]];
+		MatrixNode top = lastRowNode.get(rows[0]);
+		MatrixNode bottom = lastRowNode.get(rows[rows.length-1]);
 		top.up = bottom;
 		bottom.down = top;
 		// step column counter
@@ -59,26 +65,24 @@ public class XorMatrixFactory {
 	public XorMatrix createXorMatrix() {
 		ensureInitialized();
 		// connect first row elements with last row elements
-		for (int i = 0; i < height; i++) {
-			MatrixNode first = columnFirst[i];
-			MatrixNode last = columnLast[i];
-			if (first != null) {
-				first.left = last;
-				last.right = first;
-			}
+		for (MatrixNode first : firstRowNodes.values()) {
+			MatrixNode last = lastRowNode.get(first.row);
+			first.left = last;
+			last.right = first;
 		}
 		// create matrix
-		XorMatrix matrix = new XorMatrix(columnFirst);
+		XorMatrix matrix = new XorMatrix(firstRowNodes, firstColumnNodes);
 		// free for garbage collector
-		columnFirst = null;
-		columnLast = null;
+		firstRowNodes = null;
+		firstColumnNodes = null;
+		lastRowNode = null;
 		return matrix;
 	}
 
 	@Override
 	public String toString() {
 		ensureInitialized();
-		return new XorMatrix(columnFirst).toString();
+		return new XorMatrix(firstRowNodes, firstColumnNodes).toString();
 	}
 	
 }

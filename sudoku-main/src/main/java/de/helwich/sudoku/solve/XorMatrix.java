@@ -1,25 +1,30 @@
 package de.helwich.sudoku.solve;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Hendrik Helwich
  */
 public class XorMatrix {
 
-	private final MatrixNode[] firstColumn;
+	private final Map<Integer, MatrixNode> firstRowNodes;
+	private final Map<Integer, MatrixNode> firstColumnNodes;
 	private List<XorMatrixChangeHandler> handlers;
 	private LinkedList<MatrixNode> removedNodes;
 	
 	/**
 	 * Must only be called by {@link XorMatrixFactory}.
 	 * 
-	 * @param firstColumn
+	 * @param firstRowNodes
 	 */
-	XorMatrix(MatrixNode[] firstColumn) {
-		this.firstColumn = firstColumn;
+	XorMatrix(Map<Integer, MatrixNode> firstRowNodes, Map<Integer, MatrixNode> firstColumnNodes) {
+		this.firstRowNodes = firstRowNodes;
+		this.firstColumnNodes = firstColumnNodes;
 		removedNodes = new LinkedList<MatrixNode>();
 	}
 	
@@ -42,7 +47,7 @@ public class XorMatrix {
 	}
 	
 	public int removeRow(int row) {
-		MatrixNode node = firstColumn[row];
+		MatrixNode node = firstRowNodes.get(row);
 		if (node != null) {
 			List<Integer> removeRowsLater = new ArrayList<Integer>(); //TODO get from pool
 			while (node.right != node) {
@@ -61,12 +66,12 @@ public class XorMatrix {
 			removedNodes.add(node);
 		// if node is a single node we do not know if it is removed before
 		// if node is an element of first column array => adapt array
-		if (firstColumn[node.row] == node)
+		if (firstRowNodes.get(node.row) == node)
 			if (node.right == node) { // single node in the row
-				firstColumn[node.row] = null;
+				firstRowNodes.remove(node.row);
 				notifyChangeHandler(node.row);
 			} else
-				firstColumn[node.row] = node.right;
+				firstRowNodes.put(node.row, node.right);
 	}
 	
 	/**
@@ -75,42 +80,94 @@ public class XorMatrix {
 	 */
 	private void removeNodeAndEffect(MatrixNode node, List<Integer> removeRowsLater) {
 		
-		// add all remaining nodes of the column to a column list
+		// create a list which holds the first row nodes of all the remaining
+		// rows in the current column
 		int col = node.column;
-		List<MatrixNode> column = new ArrayList<MatrixNode>(firstColumn.length); //TODO get from pool
+		List<MatrixNode> column = new ArrayList<MatrixNode>(firstRowNodes.size()); //TODO get from pool
 		MatrixNode currentNode = node; //TODO columns which have a node in this row can be ignored due to minimal constraint
-		int maxcol = Integer.MIN_VALUE;
+
 		while (currentNode.up != node) {
 			currentNode = currentNode.up;
-			MatrixNode first = firstColumn[currentNode.row];
-			column.add(first);
-			maxcol = Math.max(maxcol, first.column);
+			column.add(currentNode);
 		}
 		
+		// remove the specified node from the matrix
 		removeNode(node);
 		
-		//
+		// if the removed node was the last node in the column => return
 		int height = column.size();
 		if (height == 0)
 			return;
+		
+		
+		if (height == 2) {
+			MatrixNode n1 = column.get(0);
+			MatrixNode n2 = column.get(1);
+			if (n1.right != n1 && n1.right.right == n1 &&
+					n2.right != n2 && n2.right.right == n2 &&
+					n1.right.column != n2.right.column) {
+				n1 = n1.right;
+				n2 = n2.right;
+				n1 = firstColumnNodes.get(n1.column);
+				n2 = firstColumnNodes.get(n2.column);
+				Set<Integer> rows1 = new HashSet<Integer>();
+				while(true) {
+					rows1.add(n1.row);
+					if (n1.down.row <= n1.row)
+						break;
+					n1 = n1.down;
+				}
+				while(true) {
+					if (rows1.contains(n2.row)) {
+						removeRowsLater.add(n2.row);
+						return;
+					}
+					if (n2.down.row <= n2.row)
+						break;
+					n2 = n2.down;
+				}
+				
+			}
+		}
+		
+		
+
+		List<MatrixNode> column2 = new ArrayList<MatrixNode>(firstRowNodes.size()); //TODO get from pool
+		int maxcol = Integer.MIN_VALUE;
+		int mincol = Integer.MAX_VALUE;
+		for (MatrixNode n : column) {
+			
+			MatrixNode first = firstRowNodes.get(n.row);
+			column2.add(first);
+			maxcol = Math.max(maxcol, first.column);
+			mincol = Math.min(mincol, first.column);
+		}
+		column = column2;
+		
+		
+		// search for complete columns in all given rows (without the column of
+		// the deleted node) and remove 
 		outerloop:
-		while (true) {
-			for (int i = 0; i < height; i++) {
+		for (int ccol = maxcol;;) {
+			for (int i = 0; i < height; i++) { // iterate over all rows in the column
 				MatrixNode cnode = column.get(i);
-				while (cnode.column < maxcol) {
+				while (cnode.column < ccol) {
 					if (cnode == cnode.right || cnode.right.column < cnode.column)
-						break outerloop;
+						return; // no unprocessed node left in the row => return
+					// skip to next unprocessed node in the row
 					cnode = cnode.right;
 					column.set(i, cnode);
 				}
-				if (cnode.column > maxcol) {
-					maxcol = cnode.column;
+				if (cnode.column > ccol) { // no complete column for all rows at maxcol => skip incomplete columns
+					ccol = cnode.column;
 					continue outerloop;
 				}
 			}
-			if (maxcol != col)
+			// found a complete column in maxcol for the rows
+			if (ccol != col) // found column is not the column of the removed node
 				removeColumn(column, removeRowsLater);
-			maxcol++;
+			// skip to next column
+			ccol++;
 		}
 		
 	}
@@ -150,17 +207,20 @@ public class XorMatrix {
 			MatrixNode node = removedNodes.removeLast();
 			// reinsert node in matrix
 			node.reInsert();
-			if (firstColumn[node.row] == node.right)
-				firstColumn[node.row] = node;
+			if (firstRowNodes.get(node.row) == node.right)
+				firstRowNodes.put(node.row, node);
 		}
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		int row = 0;
-		for (MatrixNode first : firstColumn) {
-			sb.append(row).append("  |");
+		int maxrow = Integer.MIN_VALUE;
+		for (MatrixNode first : firstRowNodes.values()) 
+			maxrow = Math.max(maxrow, first.row);
+		for (int i = 0; i <= maxrow; i++) {
+			MatrixNode first = firstRowNodes.get(i);
+			sb.append(i).append("  |");
 			int column = 0;
 			for (MatrixNode node : new MatrixNodeRowIterable(first)) {
 				for (; column < node.column; column++)
@@ -169,7 +229,6 @@ public class XorMatrix {
 				column++;
 			}
 			sb.append('\n');
-			row++;
 		}
 		return sb.toString();
 	}

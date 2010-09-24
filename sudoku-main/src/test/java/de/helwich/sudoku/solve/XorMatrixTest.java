@@ -37,7 +37,7 @@ public class XorMatrixTest {
 	@Test
 	@Ignore
 	public void test3() {
-		XorMatrixFactory factory = new XorMatrixFactory(7);
+		XorMatrixFactory factory = new XorMatrixFactory();
 		factory.addXorColumn(0,1,2);
 		factory.addXorColumn(3,4,5);
 		factory.addXorColumn(0,3);
@@ -49,7 +49,7 @@ public class XorMatrixTest {
 	@Test
 	@Ignore
 	public void test2() {
-		XorMatrixFactory factory = new XorMatrixFactory(16);
+		XorMatrixFactory factory = new XorMatrixFactory();
 		factory.addXorColumn(2,3,4,5,6);
 		factory.addXorColumn(9,10,11,12,13);
 		factory.addXorColumn(0,3,7,10,14);
@@ -66,7 +66,7 @@ public class XorMatrixTest {
 	
 	@Test
 	public void testSingle() {
-		XorMatrixFactory factory = new XorMatrixFactory(5);
+		XorMatrixFactory factory = new XorMatrixFactory();
 		factory.addXorColumn(2,4);
 		factory.addXorColumn(0,2);
 		factory.addXorColumn(2,3);
@@ -88,8 +88,8 @@ public class XorMatrixTest {
 
 	@Test
 	public void testMain() {
-		int height = 5; // cell count
-		int width = 5; // cell set count
+		int height = 6; // cell count
+		int width = 3; // cell set count
 		int testCount = 100000;
 
 		assert height > 0 && height <= 30 && width > 0;
@@ -129,7 +129,7 @@ public class XorMatrixTest {
 	}
 
 	private static XorMatrix createXorMatrix(int[] xorMatrix, int height) {
-		XorMatrixFactory factory = new XorMatrixFactory(height);
+		XorMatrixFactory factory = new XorMatrixFactory();
 		Set<Integer> usedColumns = new HashSet<Integer>();
 		List<Integer> rows = new LinkedList<Integer>();
 		for (int column : xorMatrix) {
