@@ -99,12 +99,12 @@ public class XorMatrix {
 		if (height == 0)
 			return;
 		
-		
+		// special case for 6x3 matrices
 		if (height == 2) {
 			MatrixNode n1 = column.get(0);
 			MatrixNode n2 = column.get(1);
-			if (n1.right != n1 && n1.right.right == n1 &&
-					n2.right != n2 && n2.right.right == n2 &&
+			if (isRowWidthEqual(n1, 2) &&
+					isRowWidthEqual(n2, 2) &&
 					n1.right.column != n2.right.column) {
 				n1 = n1.right;
 				n2 = n2.right;
@@ -170,6 +170,50 @@ public class XorMatrix {
 			ccol++;
 		}
 		
+	}
+
+	/**
+	 * Returns <code>true</code> if the column of the given node does have the
+	 * expected height.
+	 * 
+	 * @param  columnNode
+	 *         A node which specifies a column
+	 * @param  expectedHeight
+	 *         The expected height of the given column
+	 * @return <code>true</code> if the column of the given node does have the
+	 *         expected height
+	 */
+	private static boolean isColumnHeightEqual(MatrixNode columnNode, int expectedHeight) {
+		assert expectedHeight >= 1;
+		MatrixNode node = columnNode;
+		for (int i = 1; i <= expectedHeight; i++) {
+			node = node.up;
+			if (node == columnNode)
+				return expectedHeight == i;
+		}
+		return false;
+	}
+
+	/**
+	 * Returns <code>true</code> if the row of the given node does have the
+	 * expected width.
+	 * 
+	 * @param  rowNode
+	 *         A node which specifies a row
+	 * @param  expectedWidth
+	 *         The expected width of the given row
+	 * @return <code>true</code> if the row of the given node does have the
+	 *         expected width
+	 */
+	private static boolean isRowWidthEqual(MatrixNode rowNode, int expectedWidth) {
+		assert expectedWidth >= 1;
+		MatrixNode node = rowNode;
+		for (int i = 1; i <= expectedWidth; i++) {
+			node = node.right;
+			if (node == rowNode)
+				return expectedWidth == i;
+		}
+		return false;
 	}
 
 	private void removeRow(MatrixNode node, List<Integer> removeRowsLater) {
