@@ -50,10 +50,16 @@ public class XorMatrix {
 		MatrixNode node = firstRowNodes.get(row);
 		if (node != null) {
 			List<Integer> removeRowsLater = new ArrayList<Integer>(); //TODO get from pool
+			List<MatrixNode> removed = new LinkedList<MatrixNode>(); //TODO get from pool
 			while (node.right != node) {
-				removeNodeAndEffect(node, removeRowsLater);
+				removeNode(node);
+				removed.add(node);
 				node = node.right;
 			} 
+			removeNode(node);
+			removed.add(node);
+			for (MatrixNode n : removed)
+				removeNodeAndEffect(n, removeRowsLater);
 			removeNodeAndEffect(node,removeRowsLater);
 			for (int i = removeRowsLater.size()-1; i >= 0; i--)
 				removeRow(removeRowsLater.remove(i));
@@ -86,13 +92,19 @@ public class XorMatrix {
 		List<MatrixNode> column = new ArrayList<MatrixNode>(firstRowNodes.size()); //TODO get from pool
 		MatrixNode currentNode = node; //TODO columns which have a node in this row can be ignored due to minimal constraint
 
-		while (currentNode.up != node) {
+		do {
 			currentNode = currentNode.up;
-			column.add(currentNode);
-		}
+			if (currentNode == node)
+				return; //empty column
+		} while (currentNode.isRemoved());
 		
-		// remove the specified node from the matrix
-		removeNode(node);
+
+		MatrixNode node2 = currentNode; // first not removed node in the column
+		do {
+			column.add(currentNode);
+			currentNode = currentNode.up;
+		} while (node2 != currentNode);
+
 		
 		// if the removed node was the last node in the column => return
 		int height = column.size();
@@ -130,6 +142,49 @@ public class XorMatrix {
 			}
 		}
 		
+		// special case for 6x4 matrices
+		if (height == 2) {
+			MatrixNode n1 = column.get(0);
+			MatrixNode n2 = column.get(1);
+			if (isRowWidthEqual(n1, 2) &&
+					isRowWidthEqual(n2, 2) &&
+					n1.right.column != n2.right.column) {
+				n1 = n1.right;
+				n2 = n2.right;
+				boolean testok = false;
+				if (isColumnHeightEqual(n1, 3))
+					testok = true;
+				else if (isColumnHeightEqual(n2, 3)) {
+					// swap nodes
+					MatrixNode tn = n1;
+					n1 = n2;
+					n2 = tn;
+					testok = true;
+				}
+				if (testok) { // column of n1 hs height 3 
+					if (isColumnHeightEqual(n2, 2)) {
+						n2 = n2.up;
+						if (isRowWidthEqual(n2, 2)) {
+							n2 = n2.right;
+							if (isColumnHeightEqual(n2, 2)) {
+								n2 = n2.up;
+								if (isRowWidthEqual(n2, 2)) {
+									n2 = n2.right;
+									if (n2.column == n1.column) {
+										n2 = n2.up;
+										if (n1 == n2)
+											n2 = n2.up;
+										// n2 is now the != n1 and != n2
+										removeRowsLater.add(n2.row);
+										return;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 		
 
 		List<MatrixNode> column2 = new ArrayList<MatrixNode>(firstRowNodes.size()); //TODO get from pool

@@ -89,7 +89,7 @@ public class XorMatrixTest {
 	@Test
 	public void testMain() {
 		int height = 6; // cell count
-		int width = 3; // cell set count
+		int width = 4; // cell set count
 		int testCount = 100000;
 
 		assert height > 0 && height <= 30 && width > 0;
