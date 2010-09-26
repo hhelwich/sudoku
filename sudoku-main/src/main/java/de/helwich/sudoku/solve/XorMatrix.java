@@ -111,13 +111,26 @@ public class XorMatrix {
 		if (height == 0)
 			return;
 		
-		// special case for 6x3 matrices
-		if (height == 2) {
-			MatrixNode n1 = column.get(0);
-			MatrixNode n2 = column.get(1);
-			if (isRowWidthEqual(n1, 2) &&
-					isRowWidthEqual(n2, 2) &&
-					n1.right.column != n2.right.column) {
+		// special case for 6x3, 7x3 matrices
+		if (height == 2 || height == 3) {
+			Set<Integer> ignoreRows = new HashSet<Integer>(); //TODO from pool?
+			MatrixNode n1 = null, n2 = null;
+			for (MatrixNode cn : column) {
+				if (getRowWidth(cn, 2) == 2) {
+					if (n1 == null)
+						n1 = cn;
+					else if (n1.right.column != cn.right.column)
+						n2 = cn;
+				} else {
+					if (getRowWidth(cn, 3) == 3)
+						ignoreRows.add(cn.row);
+					else {
+						n2 = null;
+						break;
+					}
+				}	
+			}
+			if (n2 != null) {
 				n1 = n1.right;
 				n2 = n2.right;
 				n1 = firstColumnNodes.get(n1.column);
@@ -129,16 +142,18 @@ public class XorMatrix {
 						break;
 					n1 = n1.down;
 				}
+				boolean ret = false;
 				while(true) {
-					if (rows1.contains(n2.row)) {
+					if (rows1.contains(n2.row) && !ignoreRows.contains(n2.row)) {
 						removeRowsLater.add(n2.row);
-						return;
+						ret = true;
 					}
 					if (n2.down.row <= n2.row)
 						break;
 					n2 = n2.down;
 				}
-				
+				if (ret)
+					return;
 			}
 		}
 		
@@ -146,8 +161,8 @@ public class XorMatrix {
 		if (height == 2) {
 			MatrixNode n1 = column.get(0);
 			MatrixNode n2 = column.get(1);
-			if (isRowWidthEqual(n1, 2) &&
-					isRowWidthEqual(n2, 2) &&
+			if (getRowWidth(n1, 2) == 2 &&
+					getRowWidth(n2, 2) == 2 &&
 					n1.right.column != n2.right.column) {
 				n1 = n1.right;
 				n2 = n2.right;
@@ -164,11 +179,11 @@ public class XorMatrix {
 				if (testok) { // column of n1 hs height 3 
 					if (isColumnHeightEqual(n2, 2)) {
 						n2 = n2.up;
-						if (isRowWidthEqual(n2, 2)) {
+						if (getRowWidth(n2, 2) == 2) {
 							n2 = n2.right;
 							if (isColumnHeightEqual(n2, 2)) {
 								n2 = n2.up;
-								if (isRowWidthEqual(n2, 2)) {
+								if (getRowWidth(n2, 2) == 2) {
 									n2 = n2.right;
 									if (n2.column == n1.column) {
 										n2 = n2.up;
@@ -250,25 +265,28 @@ public class XorMatrix {
 	}
 
 	/**
-	 * Returns <code>true</code> if the row of the given node does have the
-	 * expected width.
+	 * Returns the the width of the row of the the given node or <code>-1</code>
+	 * if the row width is greater than <code>checkTillWidth</code>.
 	 * 
 	 * @param  rowNode
 	 *         A node which specifies a row
-	 * @param  expectedWidth
-	 *         The expected width of the given row
-	 * @return <code>true</code> if the row of the given node does have the
-	 *         expected width
+	 * @param  checkTillWidth
+	 *         The maximum width till which the row is checked. This can be the
+	 *         expected row width.
+	 * @return The the width of the row of the the given node or <code>-1</code>
+	 *         if the row width is greater than <code>checkTillWidth</code>.
 	 */
-	private static boolean isRowWidthEqual(MatrixNode rowNode, int expectedWidth) {
-		assert expectedWidth >= 1;
-		MatrixNode node = rowNode;
-		for (int i = 1; i <= expectedWidth; i++) {
-			node = node.right;
-			if (node == rowNode)
-				return expectedWidth == i;
-		}
-		return false;
+	private static int getRowWidth(MatrixNode rowNode, int checkTillWidth) {
+		assert checkTillWidth >= 1;
+		int width = 1;
+		for (MatrixNode node = rowNode.right; node != rowNode; node = node.right)
+			if (++width > checkTillWidth)
+				return -1;
+		return width;
+	}
+	
+	private static int getRowWidth(MatrixNode rowNode) {
+		return getRowWidth(rowNode, Integer.MAX_VALUE);
 	}
 
 	private void removeRow(MatrixNode node, List<Integer> removeRowsLater) {
