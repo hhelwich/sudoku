@@ -66,6 +66,40 @@ public class XorMatrix {
 		}
 		return removedNodes.size();
 	}
+	
+	/**
+	 * 
+	 * 
+	 * @param node
+	 */
+	private void removeRow_(MatrixNode node) {
+		// remove the column of the given node because it should be ignored by
+		// the recursive calls
+		removeColumn(node);
+		// remove all remaining nodes in the row of the node (and calculate the
+		// effect) until the row is empty
+		if (node != node.right)
+			removeRow_(node.right);
+		// calculate the effect for removing the current node
+		calculateEffect(node);
+		// the removing of the column can be undone
+		reInsertColumn(node);
+		// the node can be removed now
+		removeNode(node); // TODO collect notifications and do notification at end of the root operation
+	}
+
+	/**
+	 * The given node and its column is removed before by
+	 * {@link #removeColumn(MatrixNode)}.
+	 * The row of the given node is empty.
+	 * Calculate the effect for removing the given node and return the rows of
+	 * the matrix which should also be removed
+	 * 
+	 * @param node
+	 */
+	private void calculateEffect(MatrixNode node) { //TODO add parameter to collect the rows which should be removed
+		//TODO implement
+	}
 
 	/**
 	 * Removes the column of the given node from the matrix. This operation is
