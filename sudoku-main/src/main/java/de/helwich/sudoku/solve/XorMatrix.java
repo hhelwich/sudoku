@@ -66,7 +66,53 @@ public class XorMatrix {
 		}
 		return removedNodes.size();
 	}
+
+	/**
+	 * Removes the column of the given node from the matrix. This operation is
+	 * undoable by calling {@link #reInsertColumn(MatrixNode)} for the given
+	 * node on a matrix in the same state as after this operation.
+	 * This operation is intended for private use but has class visibility to
+	 * enable unit testing. 
+	 * 
+	 * @param node
+	 */
+	void removeColumn(MatrixNode node) {
+		node.remove();
+		if (node != node.down)
+			removeColumn(node.down);
+	}
+
+	/**
+	 * Undoes the effect of operation {@link #removeColumn(MatrixNode)} when
+	 * called on a matrix state which is the same as directly after the
+	 * operation and if the given node is the same instance as in the called
+	 * operation.
+	 * This operation is intended for private use but has class visibility to
+	 * enable unit testing. 
+	 * 
+	 * @param node
+	 */
+	void reInsertColumn(MatrixNode node) {
+		if (node != node.down)
+			reInsertColumn(node.down);
+		node.reInsert();
+	}
 	
+	// for testing
+	MatrixNode getRowFirstNode(int row) {
+		return firstRowNodes.get(row);
+	}
+	
+	/**
+	 * Removes the given node from the matrix (if it is not removed before) and
+	 * stores it so that the effect of this operation can be undone later.
+	 * The index of the first row nodes of the matrix is adapted if the removed
+	 * node was the first node of its row.
+	 * If the removed node was the last node of its row, a row remove
+	 * notification is send to the registered change handlers.
+	 * 
+	 * @param node
+	 */
 	private void removeNode(MatrixNode node) {
 		if (node.remove())
 			removedNodes.add(node);
@@ -110,7 +156,7 @@ public class XorMatrix {
 		int height = column.size();
 		if (height == 0)
 			return;
-		
+		/*
 		// special case for 6x3, 7x3 matrices
 		if (height == 2 || height == 3) {
 			Set<Integer> ignoreRows = new HashSet<Integer>(); //TODO from pool?
@@ -201,7 +247,7 @@ public class XorMatrix {
 			}
 		}
 		
-
+*/
 		List<MatrixNode> column2 = new ArrayList<MatrixNode>(firstRowNodes.size()); //TODO get from pool
 		int maxcol = Integer.MIN_VALUE;
 		int mincol = Integer.MAX_VALUE;
@@ -213,6 +259,7 @@ public class XorMatrix {
 			mincol = Math.min(mincol, first.column);
 		}
 		column = column2;
+		
 		
 		
 		// search for complete columns in all given rows (without the column of
@@ -239,7 +286,6 @@ public class XorMatrix {
 			// skip to next column
 			ccol++;
 		}
-		
 	}
 
 	/**
