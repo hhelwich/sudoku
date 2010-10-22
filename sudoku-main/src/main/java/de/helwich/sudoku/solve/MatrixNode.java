@@ -145,17 +145,35 @@ public class MatrixNode {
 	 * @return <code>true</code> if the node has no adjacent nodes
 	 */
 	public boolean isSingle() {
+		return isSingleInColumn() && isSingleInRow();
+	}
+	
+	/**
+	 * Returns <code>true</code> if the node has no adjacent nodes in its
+	 * column.
+	 * 
+	 * @return <code>true</code> if the node has no adjacent nodes in its column
+	 */
+	public boolean isSingleInColumn() {
+		if (up == this) { // single in column
+			assert down == this;
+			return true;
+		} else // not single in column
+			assert down != this;
+		return false;
+	}
+	
+	/**
+	 * Returns <code>true</code> if the node has no adjacent nodes in its row.
+	 * 
+	 * @return <code>true</code> if the node has no adjacent nodes in its row
+	 */
+	public boolean isSingleInRow() {
 		if (left == this) { // single in row
 			assert right == this;
-			if (up == this) { // single in row and column
-				assert down == this;
-				return true;
-			} else // single in row but not in column
-				assert down != this;
-		} else { // not single in row
+			return true;
+		} else // not single in row
 			assert right != this;
-			assert (up == this) == (down == this);
-		}
 		return false;
 	}
 	
