@@ -65,7 +65,6 @@ public class MatrixNodeTest {
 		assertFalse(pr.isRemoved());
 		assertFalse(pu.isRemoved());
 		assertFalse(pd.isRemoved());
-		assertFalse(plus.remove());
 		
 		assertEquals(pl, plus.left);
 		assertEquals(pr, plus.right);
@@ -82,8 +81,6 @@ public class MatrixNodeTest {
 		assertFalse(pr.isRemoved());
 		assertFalse(pu.isRemoved());
 		assertFalse(pd.isRemoved());
-		assertFalse(plus.remove());
-		assertFalse(pl.remove());
 		
 		assertFalse(pr.remove()); // pr is single now
 		assertTrue(pr.isSingle());
@@ -92,9 +89,6 @@ public class MatrixNodeTest {
 		assertFalse(pr.isRemoved());
 		assertFalse(pu.isRemoved());
 		assertFalse(pd.isRemoved());
-		assertFalse(plus.remove());
-		assertFalse(pl.remove());
-		assertFalse(pr.remove());
 
 		assertTrue(pu.remove());
 		assertTrue(plus.isRemoved());
@@ -102,20 +96,14 @@ public class MatrixNodeTest {
 		assertFalse(pr.isRemoved());
 		assertTrue(pu.isRemoved());
 		assertFalse(pd.isRemoved());
-		assertFalse(plus.remove());
-		assertFalse(pl.remove());
-		assertFalse(pr.remove());
-		assertFalse(pu.remove());
 		
 		assertTrue(pd.isSingle());
 		assertFalse(pd.remove()); // pd is single now
 
-		assertFalse(pd.reInsert());
-		assertTrue(pu.reInsert());
+		pu.reInsert();
 		assertFalse(pd.isSingle());
-		assertFalse(pr.reInsert());
-		assertTrue(pl.reInsert());
-		assertTrue(plus.reInsert());
+		pl.reInsert();
+		plus.reInsert();
 		
 		assertEquals(pl, plus.left);
 		assertEquals(pr, plus.right);
@@ -129,13 +117,6 @@ public class MatrixNodeTest {
 
 	@Test
 	public void testReInsert() {
-		// nothing should happen
-		min.remove();
-		min.reInsert();
-		assertEquals(min, min.left);
-		assertEquals(min, min.right);
-		assertEquals(min, min.up);
-		assertEquals(min, min.down);
 		//
 		plus.remove();
 		plus.reInsert();

@@ -46,7 +46,12 @@ public class MatrixNode {
 	}
 	
 	/**
-	 * @return <code>true</code> if the node was removed from the matrix.
+	 * Removes the node from the matrix. It is expected that the node is not
+	 * already removed from the matrix.
+	 * If the node is a single node, this operation has no effect and
+	 * <code>false</code> will be returned.
+	 * 
+	 * @return <code>true</code> if the given node is not a single node.
 	 */
 	public boolean remove() {
 		assert !isRemoved();
@@ -61,16 +66,18 @@ public class MatrixNode {
 	}
 	
 	/**
-	 * @return <code>true</code> if the node was reinserted in the matrix.
+	 * Reinserts the node from the matrix. It is expected that the node is 
+	 * removed before from the matrix by the operation {@link #remove()} which
+	 * has returned the value <code>true</code> which means that the node must
+	 * not be a single node.
 	 */
-	public boolean reInsert() {
+	public void reInsert() {
 		assert isRemoved();
 		left.right = this;
 		right.left = this;
 		up.down = this;
 		down.up = this;
 		assert checkValid(this);
-		return true;
 	}
 	
 	public void setAdjacents(MatrixNode left, MatrixNode right,
