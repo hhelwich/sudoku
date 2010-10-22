@@ -1,5 +1,8 @@
 package de.helwich.sudoku.solve;
 
+import java.util.HashSet;
+import java.util.Set;
+
 
 /**
  * Represents an element of a spare boolean matrix.
@@ -46,7 +49,9 @@ public class MatrixNode {
 	 * @return <code>true</code> if the node was removed from the matrix.
 	 */
 	public boolean remove() {
-		if (isSingle() || isRemoved())
+		assert !isRemoved();
+		assert checkValid(this);
+		if (isSingle())
 			return false;
 		left.right = right;
 		right.left = left;
@@ -59,12 +64,12 @@ public class MatrixNode {
 	 * @return <code>true</code> if the node was reinserted in the matrix.
 	 */
 	public boolean reInsert() {
-		if (!isRemoved())
-			return false;
+		assert isRemoved();
 		left.right = this;
 		right.left = this;
 		up.down = this;
 		down.up = this;
+		assert checkValid(this);
 		return true;
 	}
 	
@@ -92,18 +97,36 @@ public class MatrixNode {
 	 *         before by {@link #remove()}.
 	 */
 	public boolean isRemoved() {
-		if (left.right != this) { // node removed before; node row count unknown
-			assert right.left != this;
-			assert (up.down == this) == (down.up == this);
-			return true;
-		} else if (up.down != this) { // node removed before and only node in row
+		if (left == this) { // single in row
+			assert right == this;
+			if (up == this) { // single in row and column
+				assert down == this;
+				assert checkValid(this);
+				return false; // is single node
+			} else { // single in row but not in column => has neighbors
+				assert down != this;
+				if (up.down == this) { // is not removed
+					assert down.up == this;
+					assert checkValid(this);
+					return false;
+				} else { // is removed
+					return true;
+				}
+			}
+		}
+		// has neighbors
+		assert right != this;
+		if (left.right == this) { // and is not removed
 			assert right.left == this;
-			assert down.up != this;
-			return true;
-		} else { // not removed
-			assert right.left == this;
+			assert up.down == this;
 			assert down.up == this;
+			assert checkValid(this);
 			return false;
+		} else { // is removed
+			assert right.left != this;
+			assert (up == this && down == this) ||
+			       (up.down != this && down.up != this);
+			return true;
 		}
 	}
 	
@@ -123,10 +146,39 @@ public class MatrixNode {
 			} else // single in row but not in column
 				assert down != this;
 		} else { // not single in row
-			assert (up == this) == (down == this);
 			assert right != this;
+			assert (up == this) == (down == this);
 		}
 		return false;
+	}
+	
+	private static boolean checkValid(MatrixNode node) {
+		return checkValid(node, new HashSet<MatrixNode>());
+	}
+	
+	private static boolean checkValid(MatrixNode node, Set<MatrixNode> visitedNodes) {
+		// return if node is visited before
+		if (visitedNodes.contains(node))
+			return true;
+		// check if given node is valid and return false if not
+		if (	node.left == null ||
+				node.right == null ||
+				node.up == null ||
+				node.down == null)
+			return false;
+		if (	node.left.right != node ||
+				node.right.left != node ||
+				node.up.down    != node ||
+				node.down.up    != node)
+			return false;
+		//TODO add more checks
+		// mark node as visited
+		visitedNodes.add(node);
+		// return true if all linked nodes are valid
+		return checkValid(node.left, visitedNodes) &&
+			checkValid(node.right, visitedNodes) &&
+			checkValid(node.up, visitedNodes) &&
+			checkValid(node.down, visitedNodes);
 	}
 
 	@Override
