@@ -1,11 +1,16 @@
 package de.helwich.sudoku.solve;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * @author Hendrik Helwich
@@ -40,16 +45,23 @@ public class XorMatrix {
 		return false;
 	}
 	
-	private void notifyChangeHandler(int row) {
+	private void notifyRemovedRows(Set<Integer> rows) {
 		if (handlers != null)
 			for (XorMatrixChangeHandler handler : handlers)
-				handler.onRemoveRow(row);
+				handler.onRemoveRows(rows);
 	}
 	
 	public int removeRow(int row) {
 		MatrixNode node = firstRowNodes.get(row);
 		if (node != null) {
-			List<Integer> removeRowsLater = new ArrayList<Integer>(); //TODO get from pool
+			Set<Integer> removedRows = new TreeSet<Integer>();//TODO get from pool, Hashset?
+			
+
+			removeRow___(node);
+			removeRow_(node, removedRows);
+			removedRows.add(row);
+			//List<Integer> removeRowsLater = new ArrayList<Integer>(); //TODO get from pool
+			/*
 			List<MatrixNode> removed = new LinkedList<MatrixNode>(); //TODO get from pool
 			while (node.right != node) {
 				removeNode(node);
@@ -61,8 +73,9 @@ public class XorMatrix {
 			for (MatrixNode n : removed)
 				removeNodeAndEffect(n, removeRowsLater);
 			removeNodeAndEffect(node,removeRowsLater);
-			for (int i = removeRowsLater.size()-1; i >= 0; i--)
-				removeRow(removeRowsLater.remove(i));
+				*/
+			//for (int i : removedRows)
+			notifyRemovedRows(removedRows);
 		}
 		return removedNodes.size();
 	}
@@ -71,230 +84,80 @@ public class XorMatrix {
 	 * 
 	 * 
 	 * @param node
+	 * @param removedRows 
 	 */
-	private void removeRow_(MatrixNode node) {
-		// remove the column of the given node because it should be ignored by
-		// the recursive calls
-		removeColumn(node);
+	private void removeRow_(MatrixNode node, Set<Integer> removedRows) {
+		
+		
+		
+		//boolean ret = removeNode(node, true); // TODO collect notifications and do notification at end of the root operation
+		//assert ret; // must be true because is not a single node (see above)
+		boolean singleInColumn = node == node.down;
 		// remove all remaining nodes in the row of the node (and calculate the
 		// effect) until the row is empty
-		if (node != node.right)
-			removeRow_(node.right);
-		// calculate the effect for removing the current node
-		calculateEffect(node);
-		// the removing of the column can be undone
-		reInsertColumn(node);
+		if (node != node.right) {
+			// remove the column of the given node because it should be ignored by
+			// the recursive calls
+			if (!singleInColumn)
+				removeColumn(node.down);
+			removeRow_(node.right, removedRows);
+			if (!singleInColumn)
+				// the removing of the column can be undone
+				reInsertColumn(node.down);
+		}
+		if (!singleInColumn) {
+			// calculate the effect for removing the current node
+			calculateEffect(node.down, removedRows);
+		}
 		// the node can be removed now
-		removeNode(node); // TODO collect notifications and do notification at end of the root operation
+		//removeNode(node, true); // TODO collect notifications and do notification at end of the root operation
 	}
 
 	/**
-	 * The given node and its column is removed before by
-	 * {@link #removeColumn(MatrixNode)}.
-	 * The row of the given node is empty.
-	 * Calculate the effect for removing the given node and return the rows of
-	 * the matrix which should also be removed
+	 * ///The given node and its column is removed before by
+	 * /// {@link #removeColumn(MatrixNode)}.
+	 * Calculate the effect for removing a node which was single in its row and
+	 * was in the column which is given by its top node and return the rows of
+	 * the matrix which should also be removed.
 	 * 
 	 * @param node
 	 */
-	private void calculateEffect(MatrixNode node) { //TODO add parameter to collect the rows which should be removed
-		//TODO implement
-	}
-
-	/**
-	 * Removes the column of the given node from the matrix. This operation is
-	 * undoable by calling {@link #reInsertColumn(MatrixNode)} for the given
-	 * node on a matrix in the same state as after this operation.
-	 * This operation is intended for private use but has class visibility to
-	 * enable unit testing. 
-	 * 
-	 * @param node
-	 */
-	void removeColumn(MatrixNode node) {
-		node.remove();
-		if (node != node.down)
-			removeColumn(node.down);
-	}
-
-	/**
-	 * Undoes the effect of operation {@link #removeColumn(MatrixNode)} when
-	 * called on a matrix state which is the same as directly after the
-	 * operation and if the given node is the same instance as in the called
-	 * operation.
-	 * This operation is intended for private use but has class visibility to
-	 * enable unit testing. 
-	 * 
-	 * @param node
-	 */
-	void reInsertColumn(MatrixNode node) {
-		if (node != node.down)
-			reInsertColumn(node.down);
-		node.reInsert();
-	}
-	
-	// for testing
-	MatrixNode getRowFirstNode(int row) {
-		return firstRowNodes.get(row);
-	}
-	
-	/**
-	 * Removes the given node from the matrix (if it is not removed before) and
-	 * stores it so that the effect of this operation can be undone later.
-	 * The index of the first row nodes of the matrix is adapted if the removed
-	 * node was the first node of its row.
-	 * If the removed node was the last node of its row, a row remove
-	 * notification is send to the registered change handlers.
-	 * 
-	 * @param node
-	 */
-	private void removeNode(MatrixNode node) {
-		if (node.remove())
-			removedNodes.add(node);
-		// if node is a single node we do not know if it is removed before
-		// if node is an element of first column array => adapt array
-		if (firstRowNodes.get(node.row) == node)
-			if (node.right == node) { // single node in the row
-				firstRowNodes.remove(node.row);
-				notifyChangeHandler(node.row);
-			} else
-				firstRowNodes.put(node.row, node.right);
-	}
-	
-	/**
-	 * @param  node
-	 *         node which is removed before
-	 */
-	private void removeNodeAndEffect(MatrixNode node, List<Integer> removeRowsLater) {
+	private void calculateEffect(MatrixNode node, Set<Integer> removedRows) {
 		
-		// create a list which holds the first row nodes of all the remaining
-		// rows in the current column
-		int col = node.column;
+		removeColumn(node);
+		
+
 		List<MatrixNode> column = new ArrayList<MatrixNode>(firstRowNodes.size()); //TODO get from pool
-		MatrixNode currentNode = node; //TODO columns which have a node in this row can be ignored due to minimal constraint
-
-		do {
-			currentNode = currentNode.up;
-			if (currentNode == node)
-				return; //empty column
-		} while (currentNode.isRemoved());
-		
-
-		MatrixNode node2 = currentNode; // first not removed node in the column
-		do {
-			column.add(currentNode);
-			currentNode = currentNode.up;
-		} while (node2 != currentNode);
-
-		
-		// if the removed node was the last node in the column => return
-		int height = column.size();
-		if (height == 0)
-			return;
-		/*
-		// special case for 6x3, 7x3 matrices
-		if (height == 2 || height == 3) {
-			Set<Integer> ignoreRows = new HashSet<Integer>(); //TODO from pool?
-			MatrixNode n1 = null, n2 = null;
-			for (MatrixNode cn : column) {
-				if (getRowWidth(cn, 2) == 2) {
-					if (n1 == null)
-						n1 = cn;
-					else if (n1.right.column != cn.right.column)
-						n2 = cn;
-				} else {
-					if (getRowWidth(cn, 3) == 3)
-						ignoreRows.add(cn.row);
-					else {
-						n2 = null;
-						break;
-					}
-				}	
-			}
-			if (n2 != null) {
-				n1 = n1.right;
-				n2 = n2.right;
-				n1 = firstColumnNodes.get(n1.column);
-				n2 = firstColumnNodes.get(n2.column);
-				Set<Integer> rows1 = new HashSet<Integer>();
-				while(true) {
-					rows1.add(n1.row);
-					if (n1.down.row <= n1.row)
-						break;
-					n1 = n1.down;
-				}
-				boolean ret = false;
-				while(true) {
-					if (rows1.contains(n2.row) && !ignoreRows.contains(n2.row)) {
-						removeRowsLater.add(n2.row);
-						ret = true;
-					}
-					if (n2.down.row <= n2.row)
-						break;
-					n2 = n2.down;
-				}
-				if (ret)
-					return;
-			}
-		}
-		
-		// special case for 6x4 matrices
-		if (height == 2) {
-			MatrixNode n1 = column.get(0);
-			MatrixNode n2 = column.get(1);
-			if (getRowWidth(n1, 2) == 2 &&
-					getRowWidth(n2, 2) == 2 &&
-					n1.right.column != n2.right.column) {
-				n1 = n1.right;
-				n2 = n2.right;
-				boolean testok = false;
-				if (isColumnHeightEqual(n1, 3))
-					testok = true;
-				else if (isColumnHeightEqual(n2, 3)) {
-					// swap nodes
-					MatrixNode tn = n1;
-					n1 = n2;
-					n2 = tn;
-					testok = true;
-				}
-				if (testok) { // column of n1 hs height 3 
-					if (isColumnHeightEqual(n2, 2)) {
-						n2 = n2.up;
-						if (getRowWidth(n2, 2) == 2) {
-							n2 = n2.right;
-							if (isColumnHeightEqual(n2, 2)) {
-								n2 = n2.up;
-								if (getRowWidth(n2, 2) == 2) {
-									n2 = n2.right;
-									if (n2.column == n1.column) {
-										n2 = n2.up;
-										if (n1 == n2)
-											n2 = n2.up;
-										// n2 is now the != n1 and != n2
-										removeRowsLater.add(n2.row);
-										return;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		
-*/
-		List<MatrixNode> column2 = new ArrayList<MatrixNode>(firstRowNodes.size()); //TODO get from pool
 		int maxcol = Integer.MIN_VALUE;
 		int mincol = Integer.MAX_VALUE;
-		for (MatrixNode n : column) {
-			
+		int height = 0;
+		for (MatrixNode n : new RemovedColumnIterator(node)) {
 			MatrixNode first = firstRowNodes.get(n.row);
-			column2.add(first);
-			maxcol = Math.max(maxcol, first.column);
-			mincol = Math.min(mincol, first.column);
+			column.add(first);
+			maxcol = max(maxcol, first.column);
+			mincol = min(mincol, first.column);
+			height++;
 		}
-		column = column2;
 		
-		
+	/*
+		int height = 1; // count the number of nodes in the given column
+		// exit operation if the given column does contain a single row node
+		for (MatrixNode n = node;; n = n.down, height++) { // iterate over all column nodes
+			if (n == n.right) // if column node id single row node: exit operation
+				return;
+			if (n == n.down) // break if end of column is reached
+				break;
+		}
+	
+		// add all column nodes to a list; each row has >= 2 nodes
+		List<MatrixNode> column = new ArrayList<MatrixNode>(height);//TODO get from pool?
+		int maxcol = Integer.MIN_VALUE;
+		MatrixNode n = node;
+		for (int i = 0; i < height; i++) {
+			maxcol = max(maxcol, node.right.column);
+			column.add(node.right);
+			n = n.down;
+		}*/
 		
 		// search for complete columns in all given rows (without the column of
 		// the deleted node) and remove 
@@ -315,12 +178,104 @@ public class XorMatrix {
 				}
 			}
 			// found a complete column in maxcol for the rows
-			if (ccol != col) // found column is not the column of the removed node
-				removeColumn(column, removeRowsLater);
+			removeColumn(column, removedRows);
 			// skip to next column
 			ccol++;
 		}
+		
+		//reInsertColumn(node);
+		
+		//TODO implement
+		
 	}
+	/**
+	 * Removes the column of the given node from the matrix. This operation is
+	 * undoable by calling {@link #reInsertColumn(MatrixNode)} for the given
+	 * node on a matrix in the same state as after this operation.
+	 * This operation is intended for private use but has class visibility to
+	 * enable unit testing. 
+	 * 
+	 * @param node
+	 */
+	void removeColumn(MatrixNode node) {
+		removeNode(node, false);
+		if (node != node.down)
+			removeColumn(node.down);
+	}
+
+	/**
+	 * Removes the row of the given node from the matrix.
+	 * This operation is intended for private use but has class visibility to
+	 * enable unit testing. 
+	 * 
+	 * @param node
+	 */
+	void removeRow___(MatrixNode node) {
+		removeNode(node, true);
+		if (node != node.right)
+			removeRow___(node.right);
+	}
+
+	/**
+	 * Undoes the effect of operation {@link #removeColumn(MatrixNode)} when
+	 * called on a matrix state which is the same as directly after the
+	 * operation and if the given node is the same instance as in the called
+	 * operation.
+	 * This operation is intended for private use but has class visibility to
+	 * enable unit testing. 
+	 * 
+	 * @param node
+	 */
+	void reInsertColumn(MatrixNode node) {
+		if (node != node.down)
+			reInsertColumn(node.down);
+		node.reInsert();
+		adaptRowFirstIndexOnInsert(node);
+	}
+	
+	// for testing
+	MatrixNode getRowFirstNode(int row) {
+		return firstRowNodes.get(row);
+	}
+	
+	/**
+	 * Removes the given node from the matrix (if it is not removed before) and
+	 * stores it so that the effect of this operation can be undone later.
+	 * The index of the first row nodes of the matrix is adapted if the removed
+	 * node was the first node of its row.
+	 * If the removed node was the last node of its row, a row remove
+	 * notification is send to the registered change handlers.
+	 * 
+	 * @param  node
+	 * @return 
+	 */
+	private boolean removeNode(MatrixNode node, boolean store) {
+		boolean removed = node.remove();
+		if (removed && store)
+			removedNodes.add(node);
+		// if node is a single node we do not know if it is removed before
+		if (adaptRowFirstIndexOnRemove(node))
+			;//notifyChangeHandler(node.row);
+		return removed;
+	}
+	
+	private boolean adaptRowFirstIndexOnRemove(MatrixNode node) {
+		// if node is an element of first column array => adapt array
+		if (firstRowNodes.get(node.row) == node)
+			if (node.right == node) { // single node in the row
+				firstRowNodes.remove(node.row);
+				return true;
+			} else
+				firstRowNodes.put(node.row, node.right);
+		return false;
+	}
+
+	private void adaptRowFirstIndexOnInsert(MatrixNode node) {
+		MatrixNode frn = firstRowNodes.get(node.row);
+		if (frn == null || (node.right == frn && frn.right != node))
+			firstRowNodes.put(node.row, node);
+	}
+	
 
 	/**
 	 * Returns <code>true</code> if the column of the given node does have the
@@ -369,29 +324,30 @@ public class XorMatrix {
 		return getRowWidth(rowNode, Integer.MAX_VALUE);
 	}
 
-	private void removeRow(MatrixNode node, List<Integer> removeRowsLater) {
-		removeNode(node);
+	private void removeRow(MatrixNode node, Set<Integer> removeRowsLater) {
+		removeNode(node, true);
 		removeRowsLater.add(node.row);
 	}
 
 	// remove all given column nodes. If the column does have more nodes which
 	// are not in the argument list, remove the row for each of this nodes.
-	private void removeColumn(List<MatrixNode> columNodes, List<Integer> removeRowsLater) {
+	private void removeColumn(List<MatrixNode> columNodes, Set<Integer> removeRowsLater) {
 		for (int i = columNodes.size()-1; i>= 0; i--)
-			removeNode(columNodes.get(i));
+			removeNode(columNodes.get(i), true);
 		MatrixNode node = columNodes.get(0); // last removed node
 		if (node != node.up)
-			removeRowsOfColumn(node.up, removeRowsLater);
+			removeRow(node.up, removeRowsLater);
+			//removeRowsOfColumn(node.up, removeRowsLater);
 	}
 
 	
 	/**
 	 * Remove all rows of the column of the given node.
 	 */
-	private void removeRowsOfColumn(MatrixNode node, List<Integer> removeRowsLater) {
-		for (removeRow(node, removeRowsLater); node != node.up; node = node.up)
-			removeRow(node.up, removeRowsLater);
-	}
+//	private void removeRowsOfColumn(MatrixNode node, List<Integer> removeRowsLater) {
+//		for (removeRow(node, removeRowsLater); node != node.up; node = node.up)
+//			removeRow(node.up, removeRowsLater);
+//	}
 
 	public void restoreNodes(int matrixStateId) {
 		if (matrixStateId < 0)
@@ -404,8 +360,7 @@ public class XorMatrix {
 			MatrixNode node = removedNodes.removeLast();
 			// reinsert node in matrix
 			node.reInsert();
-			if (firstRowNodes.get(node.row) == node.right)
-				firstRowNodes.put(node.row, node);
+			adaptRowFirstIndexOnInsert(node);
 		}
 	}
 
@@ -431,3 +386,53 @@ public class XorMatrix {
 	}
 	
 }
+
+
+
+
+
+
+/**
+ * Use this class to iterate over the nodes of a column which is removed
+ * before by {@link XorMatrix#removeColumn(MatrixNode)}.
+ * The nodes must be removed in the order from top to bottom.
+ * The top node must be given to the constructor.
+ */
+class RemovedColumnIterator implements Iterable<MatrixNode> {
+	
+	private final MatrixNode topNode;
+	
+	public RemovedColumnIterator(MatrixNode topNode) {
+		this.topNode = topNode;
+	}
+
+	@Override
+	public Iterator<MatrixNode> iterator() {
+		return new Iterator<MatrixNode>() {
+
+			private MatrixNode next = topNode;
+			
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+			
+			@Override
+			public MatrixNode next() {
+				if (next == null)
+					throw new NoSuchElementException();
+				try {
+					return next;
+				} finally {
+					next = next == next.down ? null : next.down;
+				}
+			}
+			
+			@Override
+			public boolean hasNext() {
+				return next != null;
+			}
+		};
+	}
+}
+

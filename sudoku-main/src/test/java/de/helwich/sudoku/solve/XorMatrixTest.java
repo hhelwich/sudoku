@@ -35,6 +35,27 @@ public class XorMatrixTest {
 	}
 	
 	@Test
+	public void testRemoveRow() {
+		XorMatrixFactory factory = new XorMatrixFactory();
+		factory.addXorColumn(0,1,2);
+		factory.addXorColumn(3,4,5);
+		factory.addXorColumn(0,3);
+		factory.addXorColumn(1,4,6);
+		XorMatrix matrix = factory.createXorMatrix();
+		MatrixNode node = matrix.getRowFirstNode(0).right;
+		MatrixNode node2 = matrix.getRowFirstNode(3).right;
+		assertEquals(node.up, node2);
+		matrix.removeColumn(node);
+		assertNotSame(matrix.getRowFirstNode(0).right, node);
+		assertNotSame(matrix.getRowFirstNode(3).right, node2);
+		assertEquals(node.up, node2);
+		matrix.reInsertColumn(node);
+		assertEquals(matrix.getRowFirstNode(0).right, node);
+		assertEquals(matrix.getRowFirstNode(3).right, node2);
+		assertEquals(node.up, node2);
+	}
+	
+	@Test
 	@Ignore
 	public void test3() {
 		XorMatrixFactory factory = new XorMatrixFactory();
@@ -44,6 +65,15 @@ public class XorMatrixTest {
 		factory.addXorColumn(1,4,6);
 		XorMatrix matrix = factory.createXorMatrix();
 		removeRow(matrix, 6,  2, 5);
+	}
+	
+	@Test
+	public void test1() {
+		XorMatrixFactory factory = new XorMatrixFactory();
+		factory.addXorColumn(0,2);
+		factory.addXorColumn(1,2);
+		XorMatrix matrix = factory.createXorMatrix();
+		removeRow(matrix, 1,  0);
 	}
 	
 	@Test
@@ -65,6 +95,30 @@ public class XorMatrixTest {
 	}
 	
 	@Test
+	/** 0 => 3; 1 => 4; 2 => 5
+	 * 0  X     
+	 * 1    X  
+	 * 2      X
+	 * 3    X X
+	 * 4  X   X
+	 * 5  X X 
+	 * 0 => ₁∊4 ⊗ ₁∊5 => ₁∊1,3 ⊗ ₁∊2,3 => 3=∅
+	 */
+	public void test4() {
+		XorMatrixFactory factory = new XorMatrixFactory();
+		factory.addXorColumn(0,4,5);
+		factory.addXorColumn(1,3,5);
+		factory.addXorColumn(2,3,4);
+		XorMatrix matrix = factory.createXorMatrix();
+		removeRow(matrix, 0, 3);
+		matrix.restoreNodes(0);
+		removeRow(matrix, 1, 4);
+		matrix.restoreNodes(0);
+		removeRow(matrix, 2, 5);
+	}
+	
+	@Test
+	@Ignore
 	public void testSingle() {
 		XorMatrixFactory factory = new XorMatrixFactory();
 		factory.addXorColumn(2,4);
@@ -88,8 +142,8 @@ public class XorMatrixTest {
 
 	@Test
 	public void testMain() {
-		int height = 7; // cell count
-		int width = 3; // cell set count
+		int height = 5; // cell count
+		int width = 5; // cell set count
 		int testCount = 100000;
 
 		assert height > 0 && height <= 30 && width > 0;
@@ -255,10 +309,12 @@ public class XorMatrixTest {
 		}
 		
 		@Override
-		public void onRemoveRow(int row) {
-			int rowIdx = Collections.binarySearch(expectedRows, row);
-			assertTrue("row "+row+" should not be removed", rowIdx >= 0);
-			removedRows[rowIdx] = true;
+		public void onRemoveRows(Set<Integer> rows) {
+			for (int row : rows) {
+				int rowIdx = Collections.binarySearch(expectedRows, row);
+				assertTrue("row "+row+" should not be removed", rowIdx >= 0);
+				removedRows[rowIdx] = true;
+			}
 		}
 		
 		public void finish() {

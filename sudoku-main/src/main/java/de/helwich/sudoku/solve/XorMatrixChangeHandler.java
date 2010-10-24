@@ -1,5 +1,7 @@
 package de.helwich.sudoku.solve;
 
+import java.util.Set;
+
 /**
  * Interface that can be used to get notified if the state of an
  * {@link XorMatrix} has changed.
@@ -11,6 +13,6 @@ package de.helwich.sudoku.solve;
  */
 public interface XorMatrixChangeHandler {
 
-	public void onRemoveRow(int row);
+	public void onRemoveRows(Set<Integer> rows);
 	
 }
