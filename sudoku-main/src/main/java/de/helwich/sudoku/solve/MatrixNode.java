@@ -1,7 +1,5 @@
 package de.helwich.sudoku.solve;
 
-import java.util.HashSet;
-import java.util.Set;
 
 
 /**
@@ -20,7 +18,8 @@ import java.util.Set;
  * @author Hendrik Helwich
  */
 public class MatrixNode {
-	
+
+//	private final Map<Integer, MatrixNode> firstColumnNodes;
 	/** 
 	 * An adjacent pointer which must not be <code>null</code>.
 	 */
@@ -53,16 +52,12 @@ public class MatrixNode {
 	 * 
 	 * @return <code>true</code> if the given node is not a single node.
 	 */
-	public boolean remove() {
+	public void remove() {
 		assert !isRemoved();
-		assert checkValid(this);
-		if (isSingle())
-			return false;
 		left.right = right;
 		right.left = left;
 		up.down = down;
 		down.up = up;
-		return true;
 	}
 	
 	/**
@@ -77,20 +72,9 @@ public class MatrixNode {
 		right.left = this;
 		up.down = this;
 		down.up = this;
-		assert checkValid(this);
 	}
 	
-	public void setAdjacents(MatrixNode left, MatrixNode right,
-			MatrixNode up, MatrixNode down) {
-		left.right = this;
-		right.left = this;
-		up.down = this;
-		down.up = this;
-		this.left = left;
-		this.right = right;
-		this.up = up;
-		this.down = down;
-	}
+
 	
 	/**
 	 * Returns <code>true</code> if the node had adjacent nodes
@@ -108,17 +92,14 @@ public class MatrixNode {
 			assert right == this;
 			if (up == this) { // single in row and column
 				assert down == this;
-				assert checkValid(this);
 				return false; // is single node
 			} else { // single in row but not in column => has neighbors
 				assert down != this;
 				if (up.down == this) { // is not removed
 					assert down.up == this;
-					assert checkValid(this);
 					return false;
-				} else { // is removed
+				} else // is removed
 					return true;
-				}
 			}
 		}
 		// has neighbors
@@ -127,7 +108,6 @@ public class MatrixNode {
 			assert right.left == this;
 			assert up.down == this;
 			assert down.up == this;
-			assert checkValid(this);
 			return false;
 		} else { // is removed
 			assert right.left != this;
@@ -177,34 +157,34 @@ public class MatrixNode {
 		return false;
 	}
 	
-	private static boolean checkValid(MatrixNode node) {
-		return checkValid(node, new HashSet<MatrixNode>());
-	}
-	
-	private static boolean checkValid(MatrixNode node, Set<MatrixNode> visitedNodes) {
-		// return if node is visited before
-		if (visitedNodes.contains(node))
-			return true;
-		// check if given node is valid and return false if not
-		if (	node.left == null ||
-				node.right == null ||
-				node.up == null ||
-				node.down == null)
-			return false;
-		if (	node.left.right != node ||
-				node.right.left != node ||
-				node.up.down    != node ||
-				node.down.up    != node)
-			return false;
-		//TODO add more checks
-		// mark node as visited
-		visitedNodes.add(node);
-		// return true if all linked nodes are valid
-		return checkValid(node.left, visitedNodes) &&
-			checkValid(node.right, visitedNodes) &&
-			checkValid(node.up, visitedNodes) &&
-			checkValid(node.down, visitedNodes);
-	}
+//	private static boolean checkValid(MatrixNode node) {
+//		return checkValid(node, new HashSet<MatrixNode>());
+//	}
+//	
+//	private static boolean checkValid(MatrixNode node, Set<MatrixNode> visitedNodes) {
+//		// return if node is visited before
+//		if (visitedNodes.contains(node))
+//			return true;
+//		// check if given node is valid and return false if not
+//		if (	node.left == null ||
+//				node.right == null ||
+//				node.up == null ||
+//				node.down == null)
+//			return false;
+//		if (	node.left.right != node ||
+//				node.right.left != node ||
+//				node.up.down    != node ||
+//				node.down.up    != node)
+//			return false;
+//		//TODO add more checks
+//		// mark node as visited
+//		visitedNodes.add(node);
+//		// return true if all linked nodes are valid
+//		return checkValid(node.left, visitedNodes) &&
+//			checkValid(node.right, visitedNodes) &&
+//			checkValid(node.up, visitedNodes) &&
+//			checkValid(node.down, visitedNodes);
+//	}
 
 	@Override
 	public String toString() {

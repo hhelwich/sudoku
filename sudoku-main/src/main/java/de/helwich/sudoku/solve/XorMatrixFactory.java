@@ -71,7 +71,7 @@ public class XorMatrixFactory {
 			last.right = first;
 		}
 		// create matrix
-		XorMatrix matrix = new XorMatrix(firstRowNodes, firstColumnNodes);
+		XorMatrix matrix = new XorMatrix(firstRowNodes);
 		// free for garbage collector
 		firstRowNodes = null;
 		firstColumnNodes = null;
@@ -82,7 +82,7 @@ public class XorMatrixFactory {
 	@Override
 	public String toString() {
 		ensureInitialized();
-		return new XorMatrix(firstRowNodes, firstColumnNodes).toString();
+		return new XorMatrix(firstRowNodes).toString();
 	}
 	
 }

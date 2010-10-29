@@ -1,6 +1,5 @@
 package de.helwich.sudoku.solve;
 
-import java.util.Set;
 
 /**
  * Interface that can be used to get notified if the state of an
@@ -11,8 +10,10 @@ import java.util.Set;
  * 
  * @author Hendrik Helwich
  */
-public interface XorMatrixChangeHandler {
+public interface BMatrixChangeHandler {
 
-	public void onRemoveRows(Set<Integer> rows);
+	public void onRemoveRow(int rowIndex);
+
+	public void onInsertRow(int rowIndex);
 	
 }
