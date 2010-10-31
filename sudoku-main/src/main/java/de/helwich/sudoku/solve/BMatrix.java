@@ -35,7 +35,7 @@ public class BMatrix {
 			handler.onRemoveRow(rowIndex);
 	}
 	
-	private void notifyInsertedRow(int rowIndex) {
+	protected void notifyInsertedRow(int rowIndex) {
 		for (BMatrixChangeHandler handler : handlers)
 			handler.onInsertRow(rowIndex);
 	}
@@ -121,7 +121,7 @@ public class BMatrix {
 	 * 
 	 * @param node
 	 */
-	void removeRow(MatrixNode node) {
+	protected void removeRow(MatrixNode node) {
 		assert node != null;
 		removeNode(node);
 		if (node != node.right)

@@ -77,6 +77,33 @@ public class XorMatrixTest {
 	}
 	
 	@Test
+	public void test1b() {
+		XorMatrixFactory factory = new XorMatrixFactory();
+		factory.addXorColumn(0,1);
+		XorMatrix matrix = factory.createXorMatrix();
+		removeRow(matrix, 0);
+	}
+	
+	@Test
+	public void test1c() {
+		XorMatrixFactory factory = new XorMatrixFactory();
+		factory.addXorColumn(1, 2, 3);
+		factory.addXorColumn(0, 3);
+		XorMatrix matrix = factory.createXorMatrix();
+		removeRow(matrix, 0,  1, 2);
+	}
+	
+	@Test
+	public void test1d() {
+		XorMatrixFactory factory = new XorMatrixFactory();
+		factory.addXorColumn(0, 1);
+		factory.addXorColumn(0, 3);
+		factory.addXorColumn(2, 3);
+		XorMatrix matrix = factory.createXorMatrix();
+		removeRow(matrix, 2,  0);
+	}
+	
+	@Test
 	@Ignore
 	public void test2() {
 		XorMatrixFactory factory = new XorMatrixFactory();

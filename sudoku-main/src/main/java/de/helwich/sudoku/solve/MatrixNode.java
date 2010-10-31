@@ -67,7 +67,7 @@ public class MatrixNode {
 	 * not be a single node.
 	 */
 	public void reInsert() {
-		assert isRemoved();
+		assert isRemoved() || isSingle();
 		left.right = this;
 		right.left = this;
 		up.down = this;

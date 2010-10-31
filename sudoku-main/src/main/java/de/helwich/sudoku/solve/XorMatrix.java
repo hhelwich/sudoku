@@ -4,13 +4,13 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * @author Hendrik Helwich
@@ -28,24 +28,67 @@ public class XorMatrix extends BMatrix {
 	}
 	
 
-	
+
+
 	@Override
-	void removeRow(MatrixNode node) {
-		Set<Integer> removedRows = new TreeSet<Integer>();//TODO get from pool, Hashset?
-		super.removeRow(node);
-		removeRow_(node, removedRows);
+	void removeRow(int rowIndex) {
+		List<Integer> removedRows = new LinkedList<Integer>();
+		removedRows.add(rowIndex);
+		removeRow(removedRows);
+	}
+	
+	private void removeRow(List<Integer> removedRows) {
+		if (removedRows.isEmpty()) {
+			notifyChanges();
+			return;
+		}
+		int rowIndex = removedRows.remove(0);
+		MatrixNode node = getRowFirstNode(rowIndex);
+		if (node != null) {
+			super.removeRow(node);
+			removeRow_(node, removedRows);
+		}
+		removeRow(removedRows);
 	}
 
 
 
+	private Set<Integer> removedRows = new HashSet<Integer>();
+	private Set<Integer> insertedRows = new HashSet<Integer>();
 	
+	@Override
+	protected void notifyRemovedRow(int rowIndex) {
+		insertedRows.remove(rowIndex);
+		removedRows.add(rowIndex);
+	}
+
+
+
+	@Override
+	protected void notifyInsertedRow(int rowIndex) {
+		removedRows.remove(rowIndex);
+		insertedRows.add(rowIndex);
+	}
+	
+	
+
+	private void notifyChanges() {
+		for (int rowIndex : removedRows)
+			super.notifyRemovedRow(rowIndex);
+		removedRows.clear();
+		for (int rowIndex : insertedRows)
+			super.notifyInsertedRow(rowIndex);
+		insertedRows.clear();
+	}
+
+
 	/**
 	 * 
 	 * 
 	 * @param node
 	 * @param removedRows 
 	 */
-	private void removeRow_(MatrixNode node, Set<Integer> removedRows) {
+	private void removeRow_(MatrixNode node, List<Integer> removedRows) {
 		//boolean ret = removeNode(node, true); // TODO collect notifications and do notification at end of the root operation
 		//assert ret; // must be true because is not a single node (see above)
 		if (node.isSingleInColumn()) {
@@ -69,6 +112,7 @@ public class XorMatrix extends BMatrix {
 		calculateEffect(node.down, removedRows);
 		// the node can be removed now
 		//removeNode(node, true); // TODO collect notifications and do notification at end of the root operation
+
 	}
 
 
@@ -82,9 +126,12 @@ public class XorMatrix extends BMatrix {
 	 * 
 	 * @param node
 	 */
-	private void calculateEffect(MatrixNode node, Set<Integer> removedRows) {
+	private void calculateEffect(MatrixNode node, List<Integer> removedRows) {
+		int stateFrom = getRemovedNodesCount();
 		
 		removeColumn(node);
+
+		int stateTo = getRemovedNodesCount();
 		
 
 		List<MatrixNode> column = new ArrayList<MatrixNode>(getHeight()); //TODO get from pool
@@ -93,6 +140,10 @@ public class XorMatrix extends BMatrix {
 		int height = 0;
 		for (MatrixNode n : new RemovedColumnIterator(node)) {
 			MatrixNode first = getRowFirstNode(n.row);
+			if (first == null)  { //TODO more elegant ?
+				undoRemove(stateFrom, stateTo);
+				return;
+			}
 			column.add(first);
 			maxcol = max(maxcol, first.column);
 			mincol = min(mincol, first.column);
@@ -127,7 +178,7 @@ public class XorMatrix extends BMatrix {
 				MatrixNode cnode = column.get(i);
 				while (cnode.column < ccol) {
 					if (cnode == cnode.right || cnode.right.column < cnode.column)
-						return; // no unprocessed node left in the row => return
+						break outerloop; // no unprocessed node left in the row => return
 					// skip to next unprocessed node in the row
 					cnode = cnode.right;
 					column.set(i, cnode);
@@ -143,9 +194,7 @@ public class XorMatrix extends BMatrix {
 			ccol++;
 		}
 		
-		//reInsertColumn(node);
-		
-		//TODO implement
+		undoRemove(stateFrom, stateTo);
 		
 	}
 
@@ -199,20 +248,21 @@ public class XorMatrix extends BMatrix {
 		return getRowWidth(rowNode, Integer.MAX_VALUE);
 	}
 
-	private void removeRow(MatrixNode node, Set<Integer> removeRowsLater) {
+	private void removeRow(MatrixNode node, List<Integer> removeRowsLater) {
 		removeNode(node);
 		removeRowsLater.add(node.row);
 	}
 
 	// remove all given column nodes. If the column does have more nodes which
 	// are not in the argument list, remove the row for each of this nodes.
-	private void removeColumn(List<MatrixNode> columNodes, Set<Integer> removeRowsLater) {
+	private void removeColumn(List<MatrixNode> columNodes, List<Integer> removeRowsLater) {
 		for (int i = columNodes.size()-1; i>= 0; i--)
 			removeNode(columNodes.get(i));
 		MatrixNode node = columNodes.get(0); // last removed node
-		if (node != node.up)
+		while (node != node.up) {
 			removeRow(node.up, removeRowsLater);
-			//removeRowsOfColumn(node.up, removeRowsLater);
+			node = node.up;
+		}
 	}
 
 	
