@@ -31,7 +31,7 @@ public class XorMatrix extends BMatrix {
 
 
 	@Override
-	void removeRow(int rowIndex) {
+	public void removeRow(int rowIndex) {
 		List<Integer> removedRows = new LinkedList<Integer>();
 		removedRows.add(rowIndex);
 		removeRow(removedRows);
@@ -263,6 +263,24 @@ public class XorMatrix extends BMatrix {
 			removeRow(node.up, removeRowsLater);
 			node = node.up;
 		}
+	}
+
+
+
+
+	@Override
+	public void undoRemove(int toState) {
+		super.undoRemove(toState);
+		notifyChanges();
+	}
+
+
+
+
+	@Override
+	public void undoRemove(int from, int to) {
+		super.undoRemove(from, to);
+		notifyChanges();
 	}
 
 	
