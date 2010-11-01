@@ -122,6 +122,7 @@ public class XorMatrixTest {
 	}
 	
 	@Test
+	@Ignore
 	/** 0 => 3; 1 => 4; 2 => 5
 	 * 0  X     
 	 * 1    X  
