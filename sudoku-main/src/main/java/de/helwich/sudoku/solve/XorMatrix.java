@@ -58,16 +58,16 @@ public class XorMatrix extends BMatrix {
 	
 	@Override
 	protected void notifyRemovedRow(int rowIndex) {
-		insertedRows.remove(rowIndex);
-		removedRows.add(rowIndex);
+		if (!insertedRows.remove(rowIndex));
+			removedRows.add(rowIndex);
 	}
 
 
 
 	@Override
 	protected void notifyInsertedRow(int rowIndex) {
-		removedRows.remove(rowIndex);
-		insertedRows.add(rowIndex);
+		if (!removedRows.remove(rowIndex));
+			insertedRows.add(rowIndex);
 	}
 	
 	
