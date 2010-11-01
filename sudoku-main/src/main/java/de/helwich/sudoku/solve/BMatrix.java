@@ -1,6 +1,6 @@
 package de.helwich.sudoku.solve;
 
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +9,7 @@ public class BMatrix {
 
 	private final Map<Integer, MatrixNode> firstRowNodes;
 	private List<BMatrixChangeHandler> handlers;
-	private LinkedList<MatrixNode> removedNodes;
+	private List<MatrixNode> removedNodes;
 	
 	/**
 	 * Must only be called by {@link XorMatrixFactory}.
@@ -18,7 +18,7 @@ public class BMatrix {
 	 */
 	BMatrix(Map<Integer, MatrixNode> firstRowNodes) {
 		this.firstRowNodes = firstRowNodes;
-		removedNodes = new LinkedList<MatrixNode>();
+		removedNodes = new ArrayList<MatrixNode>();
 		handlers = new LinkedList<BMatrixChangeHandler>();
 	}
 	
@@ -63,7 +63,7 @@ public class BMatrix {
 		if (frn == null) {
 			firstRowNodes.put(node.row, node);
 			notifyInsertedRow(node.row);
-		} else if (node.right == frn && frn.right != node)
+		} else if (node.column < frn.column)
 			firstRowNodes.put(node.row, node);
 	}
 
@@ -86,7 +86,7 @@ public class BMatrix {
 	}
 	
 
-	protected int getRemovedNodesCount() {
+	public int getRemovedNodesCount() {
 		return removedNodes.size();
 	}
 	
@@ -151,7 +151,7 @@ public class BMatrix {
 //		adaptRowFirstIndexOnInsert(node);
 //	}
 	
-	public void undoRemove(int toState) {
+	private void undoRemove_(int toState) {
 		int removeCount = getRemovedNodesCount();
 		if (toState < 0 || toState > removeCount)
 			throw new IllegalArgumentException("illegal removed nodes counter");
@@ -160,13 +160,16 @@ public class BMatrix {
 		// remove removeCount nodes
 		for (int i = 0; i < removeCount; i++) {
 			// get last removed node
-			MatrixNode node = removedNodes.removeLast();
+			MatrixNode node = removedNodes.remove(removedNodes.size()-1); // remove last
 			// reinsert node in matrix
 			node.reInsert();
 			adaptRowFirstIndexOnInsert(node);
 		}
 	}
-	
+
+	public void undoRemove(int toState) {
+		undoRemove_(toState);
+	}
 
 	public void undoRemove(int from, int to) { //TODO surely this can be optimized later
 		int removeCount = getRemovedNodesCount();
@@ -174,11 +177,11 @@ public class BMatrix {
 			throw new IllegalArgumentException("illegal removed nodes counter");
 		// calculate the number of node which must be removed
 		removeCount -= to;
+		removeCount = removedNodes.size()-removeCount;
 		LinkedList<MatrixNode> reremove = new LinkedList<MatrixNode>();
-		Iterator<MatrixNode> it = removedNodes.descendingIterator();
-		for (int i=0; i < removeCount && it.hasNext(); i++)
-			reremove.add(it.next());
-		undoRemove(from);
+		for (int i=removedNodes.size()-1; i >= removeCount; i--)
+			reremove.add(removedNodes.get(i));
+		undoRemove_(from);
 		
 		// remove removeCount nodes
 		for (MatrixNode node : reremove)
