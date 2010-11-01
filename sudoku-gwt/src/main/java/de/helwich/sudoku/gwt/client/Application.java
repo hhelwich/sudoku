@@ -1,20 +1,20 @@
 package de.helwich.sudoku.gwt.client;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.KeyCodes;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.DialogBox;
-import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Grid;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+
+import de.helwich.sudoku.solve.BMatrixChangeHandler;
+import de.helwich.sudoku.solve.XorMatrix;
+import de.helwich.sudoku.solve.XorMatrixFactory;
 
 
 
@@ -22,135 +22,93 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class Application
-    implements EntryPoint
+    implements EntryPoint, BMatrixChangeHandler
 {
 
-	/**
-	 * The message displayed to the user when the server cannot be reached or
-	 * returns an error.
-	 */
-	private static final String SERVER_ERROR = "An error occurred while "
-			+ "attempting to contact the server. Please check your network "
-			+ "connection and try again.";
-
-	/**
-	 * Create a remote service proxy to talk to the server-side Greeting service.
-	 */
-	private final GreetingServiceAsync greetingService = GWT
-			.create(GreetingService.class);
-
+	private XorMatrix matrix;
+	private Button[] buttons;
+	private Button undoB;
+	private Button undoA;
+	private List<Integer> undoStore = new LinkedList<Integer>();
+	
 	/**
 	 * This is the entry point method.
 	 */
 	public void onModuleLoad() {
-		final Button sendButton = new Button("Send");
-		final TextBox nameField = new TextBox();
-		nameField.setText("GWT User");
-		final Label errorLabel = new Label();
+		
+		Grid grid = new Grid(9,9);
+		
+		buttons = new Button[81];
+		for (int i = 0; i < 81; i++) {
+			buttons[i] = new Button(""+i);
+			final int j = i;
+			buttons[i].addClickHandler(new ClickHandler() {
+				@Override
+				public void onClick(ClickEvent event) {
+					updateUndo();
+					matrix.removeRow(j);
+				}
+			});
+			grid.setWidget(i/9, i%9, buttons[i]);
+		}
+		
+		XorMatrixFactory fac = new XorMatrixFactory();
+		for (int i = 0; i <= 72; i+=9)
+			fac.addXorColumn(0+i,1+i,2+i,3+i,4+i,5+i,6+i,7+i,8+i);
+		for (int i = 0; i < 9; i++)
+			fac.addXorColumn(0+i,9+i,18+i,27+i,36+i,45+i,54+i,63+i,72+i);
+		for (int i = 0; i <= 6; i+=3)
+			for (int j = 0; j <= 54; j+=27)
+				fac.addXorColumn(0+i+j,1+i+j,2+i+j,9+i+j,10+i+j,11+i+j,18+i+j,19+i+j,20+i+j);
+		matrix = fac.createXorMatrix();
+		matrix.addChangeHandler(this);
 
-		// We can add style names to widgets
-		sendButton.addStyleName("sendButton");
-
-		// Add the nameField and sendButton to the RootPanel
-		// Use RootPanel.get() to get the entire body element
-		RootPanel.get("nameFieldContainer").add(nameField);
-		RootPanel.get("sendButtonContainer").add(sendButton);
-		RootPanel.get("errorLabelContainer").add(errorLabel);
-
-		// Focus the cursor on the name field when the app loads
-		nameField.setFocus(true);
-		nameField.selectAll();
-
-		// Create the popup dialog box
-		final DialogBox dialogBox = new DialogBox();
-		dialogBox.setText("Remote Procedure Call");
-		dialogBox.setAnimationEnabled(true);
-		final Button closeButton = new Button("Close");
-		// We can set the id of a widget by accessing its Element
-		closeButton.getElement().setId("closeButton");
-		final Label textToServerLabel = new Label();
-		final HTML serverResponseLabel = new HTML();
-		VerticalPanel dialogVPanel = new VerticalPanel();
-		dialogVPanel.addStyleName("dialogVPanel");
-		dialogVPanel.add(new HTML("<b>Sending name to the server:</b>"));
-		dialogVPanel.add(textToServerLabel);
-		dialogVPanel.add(new HTML("<br><b>Server replies:</b>"));
-		dialogVPanel.add(serverResponseLabel);
-		dialogVPanel.setHorizontalAlignment(VerticalPanel.ALIGN_RIGHT);
-		dialogVPanel.add(closeButton);
-		dialogBox.setWidget(dialogVPanel);
-
-		// Add a handler to close the DialogBox
-		closeButton.addClickHandler(new ClickHandler() {
+		undoB = new Button("Undo");
+		undoB.addClickHandler(new ClickHandler() {
+			@Override
 			public void onClick(ClickEvent event) {
-				dialogBox.hide();
-				sendButton.setEnabled(true);
-				sendButton.setFocus(true);
+				int count = undoStore.remove(undoStore.size()-1);
+				matrix.undoRemove(count);
+				undoB.setEnabled(!undoStore.isEmpty());
+				undoA.setEnabled(undoB.isEnabled());
 			}
 		});
-
-		// Create a handler for the sendButton and nameField
-		class MyHandler implements ClickHandler, KeyUpHandler {
-			/**
-			 * Fired when the user clicks on the sendButton.
-			 */
+		undoB.setEnabled(false);
+		
+		undoA = new Button("Undo All");
+		undoA.addClickHandler(new ClickHandler() {
+			@Override
 			public void onClick(ClickEvent event) {
-				sendNameToServer();
+				undoStore.clear();
+				matrix.undoRemove(0);
+				undoB.setEnabled(false);
+				undoA.setEnabled(undoB.isEnabled());
 			}
+		});
+		undoA.setEnabled(false);
+		
+		VerticalPanel vp = new VerticalPanel();
+		vp.add(grid);
+		vp.add(undoB);
+		vp.add(undoA);
+		
+		RootPanel.get().add(vp);
+	}
 
-			/**
-			 * Fired when the user types in the nameField.
-			 */
-			public void onKeyUp(KeyUpEvent event) {
-				if (event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
-					sendNameToServer();
-				}
-			}
+	private void updateUndo() {
+		int count = matrix.getRemovedNodesCount();
+		undoStore.add(count);
+		undoB.setEnabled(true);
+		undoA.setEnabled(true);
+	}
+	
+	@Override
+	public void onInsertRow(int row) {
+		buttons[row].setVisible(true);
+	}
 
-			/**
-			 * Send the name from the nameField to the server and wait for a response.
-			 */
-			private void sendNameToServer() {
-				// First, we validate the input.
-				errorLabel.setText("");
-				String textToServer = nameField.getText();
-				if (!FieldVerifier.isValidName(textToServer)) {
-					errorLabel.setText("Please enter at least four characters");
-					return;
-				}
-
-				// Then, we send the input to the server.
-				sendButton.setEnabled(false);
-				textToServerLabel.setText(textToServer);
-				serverResponseLabel.setText("");
-				greetingService.greetServer(textToServer,
-						new AsyncCallback<String>() {
-							public void onFailure(Throwable caught) {
-								// Show the RPC error message to the user
-								dialogBox
-										.setText("Remote Procedure Call - Failure");
-								serverResponseLabel
-										.addStyleName("serverResponseLabelError");
-								serverResponseLabel.setHTML(SERVER_ERROR);
-								dialogBox.center();
-								closeButton.setFocus(true);
-							}
-
-							public void onSuccess(String result) {
-								dialogBox.setText("Remote Procedure Call");
-								serverResponseLabel
-										.removeStyleName("serverResponseLabelError");
-								serverResponseLabel.setHTML(result);
-								dialogBox.center();
-								closeButton.setFocus(true);
-							}
-						});
-			}
-		}
-
-		// Add a handler to send the name to the server
-		MyHandler handler = new MyHandler();
-		sendButton.addClickHandler(handler);
-		nameField.addKeyUpHandler(handler);
+	@Override
+	public void onRemoveRow(int row) {
+		buttons[row].setVisible(false);
 	}
 }
